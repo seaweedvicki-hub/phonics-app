@@ -68,7 +68,10 @@ function speak(text) {
 }
 
 // 🎬 自然發音動畫
-function playPhonics(){
+function if (!currentWord) {
+  alert("資料尚未載入");
+  return;
+} playPhonics(){
   // ⭐ 先清掉舊語音
   speechSynthesis.cancel();
 

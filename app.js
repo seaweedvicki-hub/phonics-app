@@ -42,7 +42,7 @@ fetch(API_URL)
   });
 
 // 顯示單字
-function  function nextWord() {
+function nextWord() {
   if (!words.length) {
     console.log("⚠️ 尚未載入資料");
     return;

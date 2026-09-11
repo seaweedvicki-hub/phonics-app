@@ -59,12 +59,9 @@ img.src = currentWord.image || "";
 img.onerror = () => {
   img.src = "https://via.placeholder.com/150";
 };
-img.onerror = () => {
-  img.src = "https://via.placeholder.com/150";
-};
-
-  phonicsArray = currentWord.phonics.split("-");
-}
+ phonicsArray = currentWord.phonics 
+  ? currentWord.phonics.split("-") 
+  : [];
 function speak(text) {
   speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);

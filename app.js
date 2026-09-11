@@ -53,18 +53,18 @@ function  nextWord() {
   document.getElementById("word").innerText = currentWord.word;
   document.getElementById("phonics").innerText = "";
   document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
-  document.getElementById("image").src = currentWord.image;
   const img = document.getElementById("image");
 img.src = currentWord.image || "";
+
+img.onerror = () => {
+  img.src = "https://via.placeholder.com/150";
+};
 img.onerror = () => {
   img.src = "https://via.placeholder.com/150";
 };
 
   phonicsArray = currentWord.phonics.split("-");
 }
-// 🔊 發音phonicsArray = currentWord.phonics 
-  ? currentWord.phonics.split("-") 
-  : [];
 function speak(text) {
   speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);
@@ -73,10 +73,11 @@ function speak(text) {
 }
 
 // 🎬 自然發音動畫
-function if (!currentWord) {
-  alert("資料尚未載入");
-  return;
-} playPhonics(){
+function playPhonics() {
+  if (!currentWord) {
+    alert("資料尚未載入");
+    return;
+  }
   // ⭐ 先清掉舊語音
   speechSynthesis.cancel();
 

@@ -6,15 +6,21 @@ let index = 0;
 // ⭐ 換成你的 Google Sheet API
 const API_URL ="https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
-fetch("data/words.json")
-  .then(res => res.json())
-  .then(data => {
-    words = data.map(item => ({
-      word: item.word,
-      phonics: item.phonics,
-      meaning: item.meaning,
-      image: item.image
+fetch(API_URL)
+  .then(res => res.text())
+  .then(text => {
+    // 🔧 解析 Google 回傳格式
+    const json = JSON.parse(text.substring(47).slice(0, -2));
+
+    const rows = json.table.rows;
+
+    words = rows.map(row => ({
+      word: row.c[0]?.v || "",
+      phonics: row.c[1]?.v || "",
+      meaning: row.c[2]?.v || "",
+      image: row.c[3]?.v || ""
     }));
+
     nextWord();
   });
 

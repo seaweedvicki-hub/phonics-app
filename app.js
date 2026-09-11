@@ -47,6 +47,10 @@ fetch(API_URL)
 
 // 顯示單字
 function nextWord() {
+  if (!words.length) {
+    console.log("⚠️ 尚未載入資料");
+    return;
+  }{
   currentWord = words[Math.floor(Math.random() * words.length)];
 
   document.getElementById("word").innerText = currentWord.word;

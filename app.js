@@ -37,7 +37,14 @@ function speak(text) {
 }
 
 // 🎬 自然發音動畫
-function playPhonics() {
+function playPhonics(){
+  // 🔓 解鎖語音（關鍵）
+  let unlock = new SpeechSynthesisUtterance(" ");
+  speechSynthesis.speak(unlock);
+
+  // ⭐ 清掉舊聲音（避免卡住）
+  speechSynthesis.cancel();
+
   index = 0;
   document.getElementById("phonics").innerText = "";
   playNext();

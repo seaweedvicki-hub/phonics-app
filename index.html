@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Phonics App</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="card">
+  <img id="image" class="word-img">
+
+  <h1 id="word"></h1>
+  <p id="phonics"></p>
+  <p id="meaning"></p>
+
+  <button onclick="speak(currentWord.word)">🔊 單字發音</button>
+  <button onclick="playPhonics()">🎬 自然發音</button>
+  <button onclick="nextWord()">下一個</button>
+  <button onclick="startQuiz()">🎯 測驗</button>
+</div>
+
+<div class="quiz hidden">
+  <h2>選出正確圖片</h2>
+  <div id="choices"></div>
+  <p id="result"></p>
+</div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

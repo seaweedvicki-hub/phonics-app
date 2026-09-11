@@ -10,7 +10,6 @@ fetch(API_URL)
   .then(res => res.text())
   .then(text => {
     try {
-      // 🔧 安全解析（避免格式變動爆掉）
       const json = JSON.parse(
         text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
       );
@@ -24,7 +23,7 @@ fetch(API_URL)
           meaning: row.c[2]?.v || "",
           image: row.c[3]?.v || ""
         }))
-        .filter(item => item.word); // ⭐ 過濾空資料
+        .filter(item => item.word);
 
       if (words.length === 0) {
         throw new Error("資料是空的");
@@ -34,23 +33,21 @@ fetch(API_URL)
 
     } catch (e) {
       console.error("❌ 解析失敗", e);
-      alert("資料讀取失敗，請重新整理");
+      alert("資料讀取失敗");
     }
   })
   .catch(err => {
     console.error("❌ API錯誤", err);
-    alert("無法連線，請檢查網路");
-  });
-
-    nextWord();
+    alert("無法連線");
   });
 
 // 顯示單字
-function nextWord() {
+function  nextWord() {
   if (!words.length) {
     console.log("⚠️ 尚未載入資料");
     return;
-  }{
+  }
+
   currentWord = words[Math.floor(Math.random() * words.length)];
 
   document.getElementById("word").innerText = currentWord.word;
@@ -60,7 +57,6 @@ function nextWord() {
 
   phonicsArray = currentWord.phonics.split("-");
 }
-
 // 🔊 發音
 function speak(text) {
   speechSynthesis.cancel();

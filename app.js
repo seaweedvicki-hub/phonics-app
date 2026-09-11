@@ -42,7 +42,7 @@ fetch(API_URL)
   });
 
 // 顯示單字
-function  nextWord() {
+function  function nextWord() {
   if (!words.length) {
     console.log("⚠️ 尚未載入資料");
     return;
@@ -53,16 +53,19 @@ function  nextWord() {
   document.getElementById("word").innerText = currentWord.word;
   document.getElementById("phonics").innerText = "";
   document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
-  const img = document.getElementById("image");
-img.src = currentWord.image || "";
 
-img.onerror = () => {
-  img.onerror = null; // ⭐ 防止無限觸發
-  img.src = "https://via.placeholder.com/150";
-};
- phonicsArray = currentWord.phonics 
-  ? currentWord.phonics.split("-") 
-  : [];
+  const img = document.getElementById("image");
+  img.src = currentWord.image || "";
+
+  img.onerror = () => {
+    img.onerror = null;
+    img.src = "https://via.placeholder.com/150";
+  };
+
+  phonicsArray = currentWord.phonics 
+    ? currentWord.phonics.split("-") 
+    : [];
+} // ✅ 一定要有這個結尾
 function speak(text) {
   speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);

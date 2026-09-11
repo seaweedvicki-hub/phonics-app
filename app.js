@@ -54,6 +54,11 @@ function  nextWord() {
   document.getElementById("phonics").innerText = "";
   document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
   document.getElementById("image").src = currentWord.image;
+  const img = document.getElementById("image");
+img.src = currentWord.image || "";
+img.onerror = () => {
+  img.src = "https://via.placeholder.com/150";
+};
 
   phonicsArray = currentWord.phonics.split("-");
 }

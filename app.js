@@ -40,16 +40,20 @@ function speak(text) {
 
 // 🎬 自然發音動畫
 function playPhonics(){
-  // 🔓 解鎖語音（關鍵）
-  let unlock = new SpeechSynthesisUtterance(" ");
-  speechSynthesis.speak(unlock);
-
-  // ⭐ 清掉舊聲音（避免卡住）
+  // ⭐ 先清掉舊語音
   speechSynthesis.cancel();
+
+  // 🔓 解鎖語音（要有一點點內容）
+  let unlock = new SpeechSynthesisUtterance("ok");
+  speechSynthesis.speak(unlock);
 
   index = 0;
   document.getElementById("phonics").innerText = "";
-  playNext();
+
+  // ⭐ 稍微延遲再開始（超關鍵🔥）
+  setTimeout(() => {
+    playNext();
+  }, 200);
 }
 
 function playNext() {

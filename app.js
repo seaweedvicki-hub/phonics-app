@@ -4,7 +4,7 @@ let phonicsArray = [];
 let index = 0;
 
 // ⭐ 換成你的 Google Sheet API
-const API_URL = "https://opensheet.elk.sh/你的ID/Sheet1";
+const API_URL = "https://opensheet.elk.sh/1VdEs-nzt4aDFnKPQEwXvHPtqze9vSenCjS8A5epkkKI/Sheet1";
 
 fetch(API_URL)
   .then(res => res.json())

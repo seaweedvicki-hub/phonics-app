@@ -32,7 +32,9 @@ function nextWord() {
 
 // 🔊 發音
 function speak(text) {
+  speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);
+  msg.lang = "en-US";
   speechSynthesis.speak(msg);
 }
 

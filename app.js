@@ -14,7 +14,7 @@ fetch(API_URL)
         text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
       );
 
-      const rows = json.table.rows;
+      const rows = json.table.rows;  
 
       words = rows
         .map(row => ({
@@ -57,7 +57,9 @@ function  nextWord() {
 
   phonicsArray = currentWord.phonics.split("-");
 }
-// 🔊 發音
+// 🔊 發音phonicsArray = currentWord.phonics 
+  ? currentWord.phonics.split("-") 
+  : [];
 function speak(text) {
   speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);

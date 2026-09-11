@@ -6,7 +6,7 @@ let index = 0;
 // ⭐ 換成你的 Google Sheet API
 const API_URL = "https://opensheet.elk.sh/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/Sheet1";
 
-fetch(API_URL)
+fetch("data/words.json")
   .then(res => res.json())
   .then(data => {
     words = data.map(item => ({

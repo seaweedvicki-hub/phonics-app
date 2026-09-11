@@ -57,6 +57,7 @@ function  nextWord() {
 img.src = currentWord.image || "";
 
 img.onerror = () => {
+  img.onerror = null; // ⭐ 防止無限觸發
   img.src = "https://via.placeholder.com/150";
 };
  phonicsArray = currentWord.phonics 

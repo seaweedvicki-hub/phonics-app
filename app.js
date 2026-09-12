@@ -58,7 +58,7 @@ let wordGroups = []; // ⭐ 10字一組
 let currentGroup = [];
 let groupIndex = 0;
 let wordIndex = 0;
-  currentWord = words[Math.floor(Math.random() * words.length)];
+ currentWord = currentGroup[wordIndex];
 
   document.getElementById("word").innerText = currentWord.word;
   document.getElementById("phonics").innerText = "";
@@ -82,6 +82,11 @@ function speak(text) {
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
+}
+wordIndex++;
+
+if (wordIndex >= currentGroup.length) {
+  console.log("✅ 這10個字預習完成");
 }
 
 // 🎬 自然發音動畫

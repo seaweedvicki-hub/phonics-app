@@ -5,13 +5,21 @@
 <title>Phonics App</title>
 <link rel="stylesheet" href="style.css">
 </head>
-  <!-- 🟢 新增：登入區 -->
+<body>
+
+<!-- 🟢 登入 -->
 <div class="login">
   <input placeholder="輸入名字" id="name">
   <button onclick="login(document.getElementById('name').value)">登入</button>
 </div>
-<body>
 
+<!-- 🟢 控制 -->
+<div class="controls">
+  <button onclick="nextLearn()">下一個（預習）</button>
+  <button onclick="startQuizMode()">開始測驗</button>
+</div>
+
+<!-- 🟡 原本主畫面（保留） -->
 <div class="card">
   <img id="image" class="word-img">
 
@@ -25,8 +33,9 @@
   <button onclick="startQuiz()">🎯 測驗</button>
 </div>
 
+<!-- 🟢 測驗 -->
 <div class="quiz hidden">
-  <h2>選出正確圖片</h2>
+  <h2>🧠 選出正確圖片</h2>
   <div id="choices"></div>
   <p id="result"></p>
 </div>

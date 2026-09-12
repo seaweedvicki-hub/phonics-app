@@ -1,9 +1,11 @@
-self.addEventListener('install', e => {
+self.addEventListener("install", e=>{
   e.waitUntil(
-    caches.open('phonics-app').then(cache => {
+    caches.open("app").then(cache=>{
       return cache.addAll([
-        './',
-        './index.html'
+        "./",
+        "./index.html",
+        "./app.js",
+        "./style.css"
       ]);
     })
   );

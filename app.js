@@ -83,9 +83,12 @@ function playPhonics() {
   // ⭐ 先清掉舊語音
   speechSynthesis.cancel();
 
-  // 🔓 解鎖語音（要有一點點內容）
+  //  🔓 先解鎖
 let unlock = new SpeechSynthesisUtterance("");
 speechSynthesis.speak(unlock);
+
+// ⭐ 再清掉舊語音
+speechSynthesis.cancel();
 
   index = 0;
   document.getElementById("phonics").innerText = "";

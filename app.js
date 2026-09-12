@@ -80,9 +80,10 @@ if (!currentWord) {
   return;
 }
   //  🔓 先解鎖
-let unlock = new SpeechSynthesisUtterance("");
-speechSynthesis.speak(unlock);
-speechSynthesis.cancel();
+speechSynthesis.cancel(); // 先清掉舊的
+
+let unlock = new SpeechSynthesisUtterance("ok");
+speechSynthesis.speak(unlock); // 用有聲音的字比較穩
   index = 0;
   document.getElementById("phonics").innerText = "";
 

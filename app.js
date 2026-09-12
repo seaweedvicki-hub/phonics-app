@@ -1,26 +1,17 @@
-function getLevel(word) {
-  let p = progress[word] || 0;
-
-  if (p === 0) return "❌ 不會";
-  if (p <= 2) return "⚠️ 練習中";
-  return "✅ 熟練";
-}
 let words = [];
-let currentWord;
+let currentSet = [];
+let currentIndex = 0;
+let currentWord = null;
 let phonicsArray = [];
 let index = 0;
 
-let userName = "";
-let learnedWords = [];
-let quizWords = [];
-let currentIndex = 0;
-let score = 0;
+let studentName = "";
 let progress = {};
 
-// ⭐ API
-const API_URL ="https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
+const API_URL = "https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
-// 讀資料
+
+// ================== 載入資料 ==================
 fetch(API_URL)
   .then(res => res.text())
   .then(text => {
@@ -30,188 +21,157 @@ fetch(API_URL)
 
     const rows = json.table.rows;
 
-    words = rows.map(row => ({
-      word: row.c[0]?.v || "",
-      phonics: row.c[1]?.v || "",
-      meaning: row.c[2]?.v || "",
-      image: row.c[3]?.v || ""
+    words = rows.map(r => ({
+      word: r.c[0]?.v || "",
+      phonics: r.c[1]?.v || "",
+      meaning: r.c[2]?.v || "",
+      image: r.c[3]?.v || "",
+      level: 0
     })).filter(w => w.word);
+
+    initLearn();
   });
 
-// 👤 登入
-function login() {
-  userName = document.getElementById("name").value;
 
-  if (!userName) return alert("請輸入名字");
+// ================== 登入 ==================
+function login(name){
+  studentName = name;
+  localStorage.setItem("student", name);
 
-  let saved = localStorage.getItem(userName + "_progress");
-  if (saved) progress = JSON.parse(saved);
+  progress = JSON.parse(localStorage.getItem(name) || "{}");
 
-  document.getElementById("loginPage").classList.add("hidden");
-  document.getElementById("learnPage").classList.remove("hidden");
-
-  document.getElementById("welcome").innerText = "👋 " + userName;
-
-  startLearning();
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("app").style.display = "block";
 }
 
-// 📘 預習10字
-function startLearning() {
-  learnedWords = shuffle(words).slice(0, 10);
+
+// ================== 初始化學習 ==================
+function initLearn(){
+  currentSet = words.slice(0, 10); // 每次10字
   currentIndex = 0;
-  showLearnWord();
+  showWord();
 }
 
-function nextLearn() {
+
+// ================== 顯示單字 ==================
+function showWord(){
+  currentWord = currentSet[currentIndex];
+
+  document.getElementById("word").innerText = currentWord.word;
+  document.getElementById("meaning").innerText = currentWord.meaning;
+
+  const img = document.getElementById("image");
+  img.src = currentWord.image || "";
+  img.onerror = () => {
+    img.onerror = null;
+    img.src = "https://via.placeholder.com/150";
+  };
+
+  phonicsArray = currentWord.phonics.includes("-")
+    ? currentWord.phonics.split("-")
+    : [currentWord.word];
+
+  document.getElementById("phonics").innerText = phonicsArray.join(" | ");
+}
+
+
+// ================== 下一個 ==================
+function nextLearn(){
   currentIndex++;
-  if (currentIndex >= 10) return alert("預習完成！");
-  showLearnWord();
+
+  if(currentIndex >= currentSet.length){
+    startQuizMode();
+    return;
+  }
+
+  showWord();
 }
 
-function showLearnWord() {
-  let w = learnedWords[currentIndex];
 
-  currentWord = w;
+// ================== 發音 ==================
+function speak(text){
+  if(!text) return;
 
-  document.getElementById("word").innerText = w.word;
-  document.getElementById("meaning").innerText = "👉 " + w.meaning;
-
-  phonicsArray = w.phonics?.split("-") || [w.word];
-}
-
-// 🔊 發音
-function speak(text) {
-  if (!text) return;
   speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
 }
 
-// 🎬 發音動畫
-function playPhonics() {
+
+// ================== 自然發音 ==================
+function playPhonics(){
   speechSynthesis.cancel();
 
-  let unlock = new SpeechSynthesisUtterance("ok");
+  let unlock = new SpeechSynthesisUtterance("");
+  unlock.volume = 0;
   speechSynthesis.speak(unlock);
 
   index = 0;
+  document.getElementById("phonics").innerText = "";
 
   setTimeout(playNext, 200);
 }
 
-function playNext() {
-  if (index >= phonicsArray.length) {
+function playNext(){
+  if(index >= phonicsArray.length){
     speak(currentWord.word);
     return;
   }
 
-  speak(phonicsArray[index]);
+  let s = phonicsArray[index];
+
+  document.getElementById("phonics").innerText += s + " ";
+  speak(s);
+
   index++;
-  setTimeout(playNext, 800);
+  setTimeout(playNext, 700);
 }
 
-// 🎯 測驗（記憶曲線🔥）
-function startQuizMode() {
-  document.getElementById("learnPage").classList.add("hidden");
-  document.getElementById("quizPage").classList.remove("hidden");
 
-  quizWords = getSmartQuizWords();
-  currentIndex = 0;
-  score = 0;
-
-  showQuiz(document.getElementById("quizPhonics").innerText =
-  w.phonics?.split("-").join(" ") || "";);
+// ================== 測驗模式 ==================
+function startQuizMode(){
+  document.getElementById("quiz").style.display = "block";
+  nextQuiz();
 }
 
-function getSmartQuizWords() {
-  let pool = [];
+function nextQuiz(){
+  currentWord = currentSet[Math.floor(Math.random()*currentSet.length)];
 
-  words.forEach(w => {
-    let level = progress[w.word] || 0;
-let weight;
+  let choices = [currentWord];
 
-if (level === 0) {
-  weight = 5; // ❌ 不會 → 很常出現
-} else if (level <= 2) {
-  weight = 3; // ⚠️ 練習中 → 中等
-} else {
-  weight = 1; // ✅ 熟練 → 偶爾
-}
+  while(choices.length < 4){
+    let r = words[Math.floor(Math.random()*words.length)];
+    if(!choices.includes(r)) choices.push(r);
+  }
 
-    for (let i = 0; i < weight; i++) {
-      pool.push(w);
-    }
-  });
+  choices.sort(()=>Math.random()-0.5);
 
-  return shuffle(pool).slice(0, 10);
-}
+  let box = document.getElementById("choices");
+  box.innerHTML = "";
 
-// 題目
-function showQuiz() {
-  let w = quizWords[currentIndex];
-
-  document.getElementById("qNum").innerText = currentIndex + 1;
-  document.getElementById("quizWord").innerText = w.word;
-
-  let choices = shuffle(words).slice(0, 3);
-  choices.push(w);
-  choices = shuffle(choices);
-
-  let div = document.getElementById("choices");
-  div.innerHTML = "";
-
-  choices.forEach(o => {
+  choices.forEach(c=>{
     let btn = document.createElement("button");
-    btn.innerText = o.word;
-    btn.onclick = () => checkAnswer(o.word);
-    div.appendChild(btn);
+    btn.innerText = c.phonics;
+    btn.onclick = ()=>checkAnswer(c.word);
+    box.appendChild(btn);
   });
 }
 
-// 答題
-function checkAnswer(ans) {
-  let correct = quizWords[currentIndex].word;
 
-  if (ans === correct) {
-    score++;
-    progress[correct] = Math.min((progress[correct] || 0) + 1, 4);
-  } else {
-    progress[correct] = 0;
+// ================== 檢查答案 ==================
+function checkAnswer(ans){
+  let result = document.getElementById("result");
+
+  if(ans === currentWord.word){
+    result.innerText = "✅ 正確";
+
+    progress[currentWord.word] = (progress[currentWord.word] || 0) + 1;
+  }else{
+    result.innerText = "❌ 錯誤";
   }
 
-  currentIndex++;
+  localStorage.setItem(studentName, JSON.stringify(progress));
 
-  if (currentIndex >= 10) {
-    saveResult();
-    showResult();
-  } else {
-    showQuiz();
-  }
-}
-
-// 儲存
-function saveResult() {
-  let data = JSON.parse(localStorage.getItem(userName) || "[]");
-
-  data.push({
-    date: new Date().toLocaleString(),
-    score: score
-  });
-
-  localStorage.setItem(userName, JSON.stringify(data));
-  localStorage.setItem(userName + "_progress", JSON.stringify(progress));
-}
-
-// 成績畫面
-function showResult() {
-  document.getElementById("quizPage").classList.add("hidden");
-  document.getElementById("resultPage").classList.remove("hidden");
-
-  document.getElementById("score").innerText = score + " / 10";
-}
-
-// 工具
-function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
+  setTimeout(nextQuiz, 1000);
 }

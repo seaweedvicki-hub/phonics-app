@@ -2,32 +2,41 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Phonics App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Phonics Teacher</title>
+
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- 登入 -->
+<!-- 👤 登入 -->
 <div id="loginBox">
-  <h2>輸入名字</h2>
+  <h2>👶 小朋友名字</h2>
   <input id="name">
-  <button onclick="login(document.getElementById('name').value)">開始</button>
+  <button onclick="login(name.value)">開始學習</button>
 </div>
 
-<!-- 主畫面 -->
+<!-- 🎮 主畫面 -->
 <div id="app" style="display:none">
+
+  <div class="top-bar">
+    <span id="student"></span>
+    <span>⭐ <span id="score">0</span></span>
+    <span>🔥 <span id="streak">0</span></span>
+  </div>
+
+  <img id="image" class="img">
 
   <h1 id="word"></h1>
   <p id="phonics"></p>
   <p id="meaning"></p>
 
-  <img id="image" width="150">
-
-  <br><br>
-
   <button onclick="playPhonics()">🔊 發音</button>
   <button onclick="nextLearn()">下一個</button>
 
+  <!-- 🎯 測驗 -->
   <div id="quiz" style="display:none">
     <h2>選出正確發音</h2>
     <div id="choices"></div>
@@ -37,6 +46,5 @@
 </div>
 
 <script src="app.js"></script>
-
 </body>
 </html>

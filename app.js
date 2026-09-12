@@ -1,6 +1,119 @@
 // =====================
 // 🌍 全域變數
 // =====================
+let userName = "";
+let learnedWords = [];
+let quizWords = [];
+let currentIndex = 0;
+let score = 0;
+
+function login() {
+  userName = document.getElementById("name").value;
+
+  if (!userName) {
+    alert("請輸入名字");
+    return;
+  }
+
+  document.getElementById("loginPage").classList.add("hidden");
+  document.getElementById("learnPage").classList.remove("hidden");
+
+  document.getElementById("welcome").innerText = "👋 " + userName;
+
+  startLearning();
+}
+function startLearning() {
+  learnedWords = shuffle(words).slice(0, 10);
+  currentIndex = 0;
+  showLearnWord();
+}
+
+function nextLearn() {
+  currentIndex++;
+
+  if (currentIndex >= learnedWords.length) {
+    alert("預習完成！");
+    return;
+  }
+
+  showLearnWord();
+}
+
+function showLearnWord() {
+  let w = learnedWords[currentIndex];
+
+  document.getElementById("word").innerText = w.word;
+  document.getElementById("meaning").innerText = "👉 " + w.meaning;
+
+  phonicsArray = w.phonics.split("-");
+}
+function startQuizMode() {
+  document.getElementById("learnPage").classList.add("hidden");
+  document.getElementById("quizPage").classList.remove("hidden");
+
+  quizWords = shuffle(learnedWords);
+  currentIndex = 0;
+  score = 0;
+
+  showQuiz();
+}
+function showQuiz() {
+  let w = quizWords[currentIndex];
+
+  document.getElementById("qNum").innerText = currentIndex + 1;
+  document.getElementById("quizWord").innerText = w.word;
+
+  let choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  let options = shuffle(words).slice(0, 3);
+  options.push(w);
+  options = shuffle(options);
+
+  options.forEach(o => {
+    let btn = document.createElement("button");
+    btn.innerText = o.word;
+    btn.onclick = () => checkAnswer(o.word);
+    choicesDiv.appendChild(btn);
+  });
+}
+function checkAnswer(ans) {
+  let correct = quizWords[currentIndex].word;
+
+  if (ans === correct) {
+    score++;
+  }
+
+  currentIndex++;
+
+  if (currentIndex >= 10) {
+    saveResult();
+    showResultPage();
+  } else {
+    showQuiz();
+  }
+}
+
+function saveResult() {
+  let data = JSON.parse(localStorage.getItem(userName) || "[]");
+
+  data.push({
+    date: new Date().toLocaleString(),
+    score: score
+  });
+
+  localStorage.setItem(userName, JSON.stringify(data));
+}
+function showResultPage() {
+  document.getElementById("quizPage").classList.add("hidden");
+  document.getElementById("resultPage").classList.remove("hidden");
+
+  document.getElementById("score").innerText =
+    "得分：" + score + " / 10";
+}
+function shuffle(array) {
+  return array.sort(() => Math.random() - 0.5);
+}
 let words = [];
 let wordGroups = [];
 let currentGroup = [];

@@ -9,14 +9,14 @@
 
 <body>
 
-<!-- 👤 登入畫面 -->
+<!-- 👤 登入 -->
 <div id="loginPage" class="page">
   <h2>👤 請輸入名字</h2>
   <input id="name" placeholder="例如：小明">
   <button onclick="login()">開始學習</button>
 </div>
 
-<!-- 📘 學習畫面 -->
+<!-- 📘 預習 -->
 <div id="learnPage" class="page hidden">
   <h2 id="welcome"></h2>
 
@@ -27,14 +27,14 @@
     <p id="phonics"></p>
     <p id="meaning"></p>
 
-    <button onclick="playPhonics()">🔊 自然發音</button>
+    <button onclick="playPhonics()">🔊 發音</button>
     <button onclick="nextLearn()">下一個</button>
   </div>
 
   <button onclick="startQuizMode()">🎯 開始測驗</button>
 </div>
 
-<!-- 🎯 測驗畫面 -->
+<!-- 🎯 測驗 -->
 <div id="quizPage" class="page hidden">
   <h2>第 <span id="qNum"></span> / 10 題</h2>
 
@@ -42,15 +42,14 @@
   <p id="quizPhonics"></p>
 
   <div id="choices"></div>
-
   <p id="result"></p>
 </div>
 
-<!-- 📊 成績畫面 -->
+<!-- 📊 成績 -->
 <div id="resultPage" class="page hidden">
   <h2>🎉 測驗完成</h2>
   <p id="score"></p>
-  <button onclick="startNextRound()">下一輪學習</button>
+  <button onclick="startLearning()">再來一輪</button>
 </div>
 
 <script src="app.js"></script>

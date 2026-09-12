@@ -68,7 +68,6 @@ phonicsArray = currentWord.phonics && currentWord.phonics.includes("-")
 } // ✅ 一定要有這個結尾
 function speak(text) {
   if (!text) return; // ⭐ 新增（防呆）
-  speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
@@ -84,7 +83,7 @@ speechSynthesis
   //  🔓 先解鎖
 let unlock = new SpeechSynthesisUtterance("");
 speechSynthesis.speak(unlock);
-
+speechSynthesis.cancel();
   index = 0;
   document.getElementById("phonics").innerText = "";
 

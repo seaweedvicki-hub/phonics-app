@@ -62,9 +62,9 @@ function nextWord() {
     img.src = "https://via.placeholder.com/150";
   };
 
-  phonicsArray = currentWord.phonics 
-    ? currentWord.phonics.split("-") 
-    : [];
+phonicsArray = currentWord.phonics && currentWord.phonics.includes("-")
+  ? currentWord.phonics.split("-")
+  : [currentWord.word];
 } // ✅ 一定要有這個結尾
 function speak(text) {
   speechSynthesis.cancel();

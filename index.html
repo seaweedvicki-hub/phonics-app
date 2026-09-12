@@ -1,347 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4caf50">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
-<title>Phonics Learning App</title>
-
-<style>
-body {
-  font-family: sans-serif;
-  text-align: center;
-  background: #f5f7fb;
-}
-
-.card {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  margin: 20px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-}
-
-.word-img {
-  width: 150px;
-}
-
-.progress-bar {
-  width: 90%;
-  height: 10px;
-  background: #ddd;
-  margin: 20px auto;
-  border-radius: 10px;
-}
-
-#progress {
-  height: 100%;
-  width: 0%;
-  background: #4caf50;
-  border-radius: 10px;
-}
-
-#word-nav button {
-  margin: 3px;
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
-  background: #eee;
-}
-
-#word-nav .active {
-  background: #4caf50;
-  color: white;
-}
-
-#phonics-blocks span {
-  display: inline-block;
-  padding: 10px;
-  margin: 5px;
-  background: #ffd54f;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.quiz img {
-  width: 80px;
-  margin: 10px;
-}
-.hidden {
-  display: none;
-}
-</style>
-
+<title>Phonics App</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
 </head>
 
 <body>
 
-<!-- 登入 -->
-<div>
-  <input id="name" placeholder="輸入名字">
-  <button onclick="login(document.getElementById('name').value)">登入</button>
+<!-- 👤 登入畫面 -->
+<div id="loginPage" class="page">
+  <h2>👤 請輸入名字</h2>
+  <input id="name" placeholder="例如：小明">
+  <button onclick="login()">開始學習</button>
 </div>
 
-<!-- 進度條 -->
-<div class="progress-bar">
-  <div id="progress"></div>
+<!-- 📘 學習畫面 -->
+<div id="learnPage" class="page hidden">
+  <h2 id="welcome"></h2>
+
+  <div class="card">
+    <img id="image" class="word-img">
+
+    <h1 id="word"></h1>
+    <p id="phonics"></p>
+    <p id="meaning"></p>
+
+    <button onclick="playPhonics()">🔊 自然發音</button>
+    <button onclick="nextLearn()">下一個</button>
+  </div>
+
+  <button onclick="startQuizMode()">🎯 開始測驗</button>
 </div>
 
-<!-- 10格導航 -->
-<div id="word-nav"></div>
+<!-- 🎯 測驗畫面 -->
+<div id="quizPage" class="page hidden">
+  <h2>第 <span id="qNum"></span> / 10 題</h2>
 
-<!-- 單字卡 -->
-<div class="card">
-  <img id="image" class="word-img">
+  <h1 id="quizWord"></h1>
+  <p id="quizPhonics"></p>
 
-  <h1 id="word"></h1>
-  <p id="meaning"></p>
-
-  <div id="phonics-blocks"></div>
-
-  <button onclick="playPhonics()">🔊 發音</button>
-  <button onclick="nextLearn()">下一個</button>
-  <button onclick="startQuizMode()">開始測驗</button>
-</div>
-
-<!-- 測驗 -->
-<div class="quiz hidden">
-  <h2>選出正確圖片</h2>
   <div id="choices"></div>
+
   <p id="result"></p>
 </div>
 
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
-</script>
-// ====== 基本資料 ======
-let words = [];
-let currentWord;
-let phonicsArray = [];
+<!-- 📊 成績畫面 -->
+<div id="resultPage" class="page hidden">
+  <h2>🎉 測驗完成</h2>
+  <p id="score"></p>
+  <button onclick="startNextRound()">下一輪學習</button>
+</div>
 
-let user = "";
-let learnedWords = [];
-let reviewQueue = [];
-
-let currentBatch = [];
-let batchIndex = 0;
-let results = [];
-
-// ⭐ Google Sheet API
-const API_URL ="https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
-
-// ====== 載入資料 ======
-fetch(API_URL)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(
-      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
-    );
-
-    const rows = json.table.rows;
-
-    words = rows.map(row => ({
-      word: row.c[0]?.v || "",
-      phonics: row.c[1]?.v || "",
-      meaning: row.c[2]?.v || "",
-      image: row.c[3]?.v || ""
-    })).filter(w => w.word);
-
-    generateBatch();
-    nextLearn();
-  });
-
-// ====== 登入 ======
-function login(name) {
-  user = name;
-  let data = localStorage.getItem("user_" + user);
-
-  if (data) {
-    let parsed = JSON.parse(data);
-    learnedWords = parsed.learnedWords || [];
-    reviewQueue = parsed.reviewQueue || [];
-  }
-
-  alert("歡迎 " + user);
-}
-
-// ====== 10字生成 ======
-function generateBatch() {
-  let pool = [...words];
-
-  if (learnedWords.length < words.length) {
-    pool = words.filter(w => !learnedWords.includes(w.word));
-  }
-
-  pool = [...reviewQueue, ...pool];
-
-  currentBatch = pool.slice(0, 10);
-  batchIndex = 0;
-
-  renderNav();
-}
-
-// ====== 預習 ======
-function nextLearn() {
-  if (batchIndex >= currentBatch.length) {
-    alert("🎉 預習完成");
-    return;
-  }
-
-  currentWord = currentBatch[batchIndex];
-
-  document.getElementById("word").innerText = currentWord.word;
-  document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
-
-  const img = document.getElementById("image");
-  img.src = currentWord.image || "";
-  img.onerror = () => img.src = "https://via.placeholder.com/150";
-
-  phonicsArray = currentWord.phonics?.split("-") || [currentWord.word];
-
-  renderBlocks();
-  updateProgress();
-  renderNav();
-
-  batchIndex++;
-}
-
-// ====== 發音積木 ======
-function renderBlocks() {
-  const div = document.getElementById("phonics-blocks");
-  div.innerHTML = "";
-
-  phonicsArray.forEach(p => {
-    let span = document.createElement("span");
-    span.innerText = p;
-    span.onclick = () => speak(p);
-    div.appendChild(span);
-  });
-}
-
-// ====== 發音 ======
-function speak(text) {
-  if (!text) return;
-  speechSynthesis.cancel();
-  let msg = new SpeechSynthesisUtterance(text);
-  msg.lang = "en-US";
-  speechSynthesis.speak(msg);
-}
-
-// ====== 自然發音 ======
-function playPhonics() {
-  speechSynthesis.cancel();
-
-  let unlock = new SpeechSynthesisUtterance("ok");
-  speechSynthesis.speak(unlock);
-
-  let i = 0;
-
-  function playNext() {
-    if (i >= phonicsArray.length) {
-      speak(currentWord.word);
-      return;
-    }
-    speak(phonicsArray[i]);
-    i++;
-    setTimeout(playNext, 600);
-  }
-
-  setTimeout(playNext, 200);
-}
-
-// ====== 進度條 ======
-function updateProgress() {
-  let percent = (batchIndex / currentBatch.length) * 100;
-  document.getElementById("progress").style.width = percent + "%";
-}
-
-// ====== 10格導航 ======
-function renderNav() {
-  let nav = document.getElementById("word-nav");
-  nav.innerHTML = "";
-
-  currentBatch.forEach((w, i) => {
-    let btn = document.createElement("button");
-    btn.innerText = i + 1;
-
-    if (i === batchIndex) btn.classList.add("active");
-
-    btn.onclick = () => {
-      batchIndex = i;
-      nextLearn();
-    };
-
-    nav.appendChild(btn);
-  });
-}
-
-// ====== 測驗 ======
-function startQuizMode() {
-  document.querySelector(".quiz").classList.remove("hidden");
-  batchIndex = 0;
-  results = [];
-  nextQuiz();
-}
-
-function nextQuiz() {
-  if (batchIndex >= currentBatch.length) {
-    finishQuiz();
-    return;
-  }
-
-  currentWord = currentBatch[batchIndex];
-  batchIndex++;
-
-  let choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML = "";
-
-  let options = [currentWord];
-
-  while (options.length < 4) {
-    let rand = words[Math.floor(Math.random() * words.length)];
-    if (!options.includes(rand)) options.push(rand);
-  }
-
-  options.sort(() => Math.random() - 0.5);
-
-  options.forEach(opt => {
-    let img = document.createElement("img");
-    img.src = opt.image;
-    img.onclick = () => checkAnswer(opt.word);
-    choicesDiv.appendChild(img);
-  });
-}
-
-// ====== 判斷 ======
-function checkAnswer(ans) {
-  if (ans === currentWord.word) {
-    results.push(true);
-    learnedWords.push(currentWord.word);
-  } else {
-    results.push(false);
-    reviewQueue.push(currentWord);
-  }
-
-  setTimeout(nextQuiz, 800);
-}
-
-// ====== 結束 ======
-function finishQuiz() {
-  let score = results.filter(r => r).length;
-
-  alert("🎯 成績：" + score + "/" + results.length);
-
-  localStorage.setItem("user_" + user, JSON.stringify({
-    learnedWords,
-    reviewQueue
-  }));
-
-  document.querySelector(".quiz").classList.add("hidden");
-}
-</script>
+<script src="app.js"></script>
 
 </body>
 </html>

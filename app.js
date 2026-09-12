@@ -47,7 +47,10 @@ function nextWord() {
     console.log("⚠️ 尚未載入資料");
     return;
   }
-
+let wordGroups = []; // ⭐ 10字一組
+let currentGroup = [];
+let groupIndex = 0;
+let wordIndex = 0;
   currentWord = words[Math.floor(Math.random() * words.length)];
 
   document.getElementById("word").innerText = currentWord.word;

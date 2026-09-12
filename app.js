@@ -120,7 +120,8 @@ function startQuizMode() {
   currentIndex = 0;
   score = 0;
 
-  showQuiz();
+  showQuiz(document.getElementById("quizPhonics").innerText =
+  w.phonics?.split("-").join(" ") || "";);
 }
 
 function getSmartQuizWords() {

@@ -84,8 +84,8 @@ function playPhonics() {
   speechSynthesis.cancel();
 
   // 🔓 解鎖語音（要有一點點內容）
-  let unlock = new SpeechSynthesisUtterance("ok");
-  speechSynthesis.speak(unlock);
+let unlock = new SpeechSynthesisUtterance("");
+speechSynthesis.speak(unlock);
 
   index = 0;
   document.getElementById("phonics").innerText = "";

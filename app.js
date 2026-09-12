@@ -23,7 +23,14 @@ fetch(API_URL)
           meaning: row.c[2]?.v || "",
           image: row.c[3]?.v || ""
         }))
+        // ⭐ 把單字分成每10個一組
+for (let i = 0; i < words.length; i += 10) {
+  wordGroups.push(words.slice(i, i + 10));
+}
         .filter(item => item.word);
+      
+
+currentGroup = wordGroups[groupIndex];
 
       if (words.length === 0) {
         throw new Error("資料是空的");

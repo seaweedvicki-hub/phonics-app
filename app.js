@@ -128,7 +128,15 @@ function getSmartQuizWords() {
 
   words.forEach(w => {
     let level = progress[w.word] || 0;
-    let weight = 5 - level;
+let weight;
+
+if (level === 0) {
+  weight = 5; // ❌ 不會 → 很常出現
+} else if (level <= 2) {
+  weight = 3; // ⚠️ 練習中 → 中等
+} else {
+  weight = 1; // ✅ 熟練 → 偶爾
+}
 
     for (let i = 0; i < weight; i++) {
       pool.push(w);

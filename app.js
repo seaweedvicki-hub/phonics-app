@@ -1,105 +1,81 @@
 let words = [];
 let currentSet = [];
-let currentIndex = 0;
-let currentWord = null;
+let currentWord;
 let phonicsArray = [];
 let index = 0;
 
 let studentName = "";
 let progress = {};
 
-const API_URL = "https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
+let score = 0;
+let streak = 0;
 
+const API_URL = "你的GoogleSheet網址";
 
-// ================== 載入資料 ==================
+// ===== 載入資料 =====
 fetch(API_URL)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(
-      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
-    );
+.then(res=>res.text())
+.then(text=>{
+  const json = JSON.parse(
+    text.substring(text.indexOf("{"), text.lastIndexOf("}")+1)
+  );
 
-    const rows = json.table.rows;
+  words = json.table.rows.map(r=>({
+    word: r.c[0]?.v || "",
+    phonics: r.c[1]?.v || "",
+    meaning: r.c[2]?.v || "",
+    image: r.c[3]?.v || ""
+  })).filter(w=>w.word);
 
-    words = rows.map(r => ({
-      word: r.c[0]?.v || "",
-      phonics: r.c[1]?.v || "",
-      meaning: r.c[2]?.v || "",
-      image: r.c[3]?.v || "",
-      level: 0
-    })).filter(w => w.word);
+  initLearn();
+});
 
-    initLearn();
-  });
-
-
-// ================== 登入 ==================
+// ===== 登入 =====
 function login(name){
   studentName = name;
-  localStorage.setItem("student", name);
+  document.getElementById("student").innerText = name;
 
   progress = JSON.parse(localStorage.getItem(name) || "{}");
 
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("app").style.display = "block";
+  loginBox.style.display = "none";
+  app.style.display = "block";
 }
 
-
-// ================== 初始化學習 ==================
+// ===== 初始化 =====
 function initLearn(){
-  currentSet = words.slice(0, 10); // 每次10字
-  currentIndex = 0;
+  currentSet = words.slice(0,10);
   showWord();
 }
 
-
-// ================== 顯示單字 ==================
+// ===== 顯示 =====
 function showWord(){
-  currentWord = currentSet[currentIndex];
+  currentWord = currentSet[Math.floor(Math.random()*currentSet.length)];
 
-  document.getElementById("word").innerText = currentWord.word;
-  document.getElementById("meaning").innerText = currentWord.meaning;
-
-  const img = document.getElementById("image");
-  img.src = currentWord.image || "";
-  img.onerror = () => {
-    img.onerror = null;
-    img.src = "https://via.placeholder.com/150";
-  };
+  word.innerText = currentWord.word;
+  meaning.innerText = currentWord.meaning;
 
   phonicsArray = currentWord.phonics.includes("-")
     ? currentWord.phonics.split("-")
     : [currentWord.word];
 
-  document.getElementById("phonics").innerText = phonicsArray.join(" | ");
+  phonics.innerText = phonicsArray.join(" 🧩 ");
+
+  let img = document.getElementById("image");
+  img.src = currentWord.image || "";
+  img.onerror = ()=> img.src="https://via.placeholder.com/150";
+
+  speak(currentWord.word);
 }
 
-
-// ================== 下一個 ==================
-function nextLearn(){
-  currentIndex++;
-
-  if(currentIndex >= currentSet.length){
-    startQuizMode();
-    return;
-  }
-
-  showWord();
-}
-
-
-// ================== 發音 ==================
+// ===== 發音 =====
 function speak(text){
-  if(!text) return;
-
   speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
 }
 
-
-// ================== 自然發音 ==================
+// ===== Phonics動畫 =====
 function playPhonics(){
   speechSynthesis.cancel();
 
@@ -107,71 +83,85 @@ function playPhonics(){
   unlock.volume = 0;
   speechSynthesis.speak(unlock);
 
-  index = 0;
-  document.getElementById("phonics").innerText = "";
+  index=0;
+  phonics.innerText="";
 
-  setTimeout(playNext, 200);
+  setTimeout(playNext,200);
 }
 
 function playNext(){
-  if(index >= phonicsArray.length){
+  if(index>=phonicsArray.length){
     speak(currentWord.word);
     return;
   }
 
   let s = phonicsArray[index];
-
-  document.getElementById("phonics").innerText += s + " ";
+  phonics.innerText += s+" ";
   speak(s);
 
   index++;
-  setTimeout(playNext, 700);
+  setTimeout(playNext,700);
 }
 
-
-// ================== 測驗模式 ==================
+// ===== 測驗 =====
 function startQuizMode(){
-  document.getElementById("quiz").style.display = "block";
+  quiz.style.display="block";
   nextQuiz();
 }
 
 function nextQuiz(){
-  currentWord = currentSet[Math.floor(Math.random()*currentSet.length)];
+  let choicesArr = [currentWord];
 
-  let choices = [currentWord];
-
-  while(choices.length < 4){
+  while(choicesArr.length<4){
     let r = words[Math.floor(Math.random()*words.length)];
-    if(!choices.includes(r)) choices.push(r);
+    if(!choicesArr.includes(r)) choicesArr.push(r);
   }
 
-  choices.sort(()=>Math.random()-0.5);
+  choices.innerHTML="";
 
-  let box = document.getElementById("choices");
-  box.innerHTML = "";
-
-  choices.forEach(c=>{
+  choicesArr.forEach(c=>{
     let btn = document.createElement("button");
     btn.innerText = c.phonics;
     btn.onclick = ()=>checkAnswer(c.word);
-    box.appendChild(btn);
+    choices.appendChild(btn);
   });
 }
 
-
-// ================== 檢查答案 ==================
+// ===== AI老師核心 =====
 function checkAnswer(ans){
-  let result = document.getElementById("result");
 
-  if(ans === currentWord.word){
-    result.innerText = "✅ 正確";
-
-    progress[currentWord.word] = (progress[currentWord.word] || 0) + 1;
-  }else{
-    result.innerText = "❌ 錯誤";
+  if(!progress[currentWord.word]){
+    progress[currentWord.word]={level:0,next:0};
   }
 
-  localStorage.setItem(studentName, JSON.stringify(progress));
+  if(ans===currentWord.word){
+    result.innerText="✅ 正確";
+    score++; streak++;
 
-  setTimeout(nextQuiz, 1000);
+    progress[currentWord.word].level++;
+
+    let delay=[0,1,3,7];
+    let lv=progress[currentWord.word].level;
+    progress[currentWord.word].next = Date.now()+delay[Math.min(lv,3)]*86400000;
+
+  }else{
+    result.innerText="❌ 再試一次";
+    streak=0;
+
+    progress[currentWord.word].level=0;
+    progress[currentWord.word].next=0;
+
+    // ⭐ 錯題插隊
+    currentSet.unshift(currentWord);
+
+    // ⭐ AI提示
+    speak(phonicsArray.join(" "));
+  }
+
+  scoreEl.innerText=score;
+  streakEl.innerText=streak;
+
+  localStorage.setItem(studentName,JSON.stringify(progress));
+
+  setTimeout(nextQuiz,1000);
 }

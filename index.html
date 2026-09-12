@@ -3,53 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <title>Phonics App</title>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
 </head>
 
 <body>
 
-<!-- 👤 登入 -->
-<div id="loginPage" class="page">
-  <h2>👤 請輸入名字</h2>
-  <input id="name" placeholder="例如：小明">
-  <button onclick="login()">開始學習</button>
+<!-- 登入 -->
+<div id="loginBox">
+  <h2>輸入名字</h2>
+  <input id="name">
+  <button onclick="login(document.getElementById('name').value)">開始</button>
 </div>
 
-<!-- 📘 預習 -->
-<div id="learnPage" class="page hidden">
-  <h2 id="welcome"></h2>
+<!-- 主畫面 -->
+<div id="app" style="display:none">
 
-  <div class="card">
-    <img id="image" class="word-img">
+  <h1 id="word"></h1>
+  <p id="phonics"></p>
+  <p id="meaning"></p>
 
-    <h1 id="word"></h1>
-    <p id="phonics"></p>
-    <p id="meaning"></p>
+  <img id="image" width="150">
 
-    <button onclick="playPhonics()">🔊 發音</button>
-    <button onclick="nextLearn()">下一個</button>
+  <br><br>
+
+  <button onclick="playPhonics()">🔊 發音</button>
+  <button onclick="nextLearn()">下一個</button>
+
+  <div id="quiz" style="display:none">
+    <h2>選出正確發音</h2>
+    <div id="choices"></div>
+    <p id="result"></p>
   </div>
 
-  <button onclick="startQuizMode()">🎯 開始測驗</button>
-</div>
-
-<!-- 🎯 測驗 -->
-<div id="quizPage" class="page hidden">
-  <h2>第 <span id="qNum"></span> / 10 題</h2>
-
-  <h1 id="quizWord"></h1>
-  <p id="quizPhonics"></p>
-
-  <div id="choices"></div>
-  <p id="result"></p>
-</div>
-
-<!-- 📊 成績 -->
-<div id="resultPage" class="page hidden">
-  <h2>🎉 測驗完成</h2>
-  <p id="score"></p>
-  <button onclick="startLearning()">再來一輪</button>
 </div>
 
 <script src="app.js"></script>

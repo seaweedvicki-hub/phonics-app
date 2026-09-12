@@ -112,6 +112,10 @@ body {
 </div>
 
 <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
 // ====== 基本資料 ======
 let words = [];
 let currentWord;

@@ -1,34 +1,42 @@
 body {
-  font-family: Arial;
+  font-family: sans-serif;
+  background: #f5f7fb;
   text-align: center;
-  background: #fff7e6;
+}
+
+.page {
+  padding: 20px;
+}
+
+.hidden {
+  display: none;
 }
 
 .card {
   background: white;
+  border-radius: 20px;
   padding: 20px;
   margin: 20px;
-  border-radius: 20px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 .word-img {
   width: 150px;
   height: 150px;
+  object-fit: cover;
 }
 
 button {
-  padding: 10px;
-  margin: 8px;
+  margin: 10px;
+  padding: 10px 20px;
+  border: none;
   border-radius: 10px;
+  background: #4CAF50;
+  color: white;
   font-size: 16px;
 }
 
-.quiz img {
+#choices img {
   width: 80px;
   margin: 10px;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none;
 }

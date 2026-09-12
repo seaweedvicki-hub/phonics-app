@@ -1,3 +1,10 @@
+function getLevel(word) {
+  let p = progress[word] || 0;
+
+  if (p === 0) return "❌ 不會";
+  if (p <= 2) return "⚠️ 練習中";
+  return "✅ 熟練";
+}
 let words = [];
 let currentWord;
 let phonicsArray = [];

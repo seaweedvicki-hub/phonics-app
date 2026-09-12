@@ -76,19 +76,14 @@ function speak(text) {
 
 // 🎬 自然發音動畫
 function playPhonics() {
-  if (!currentWord) {
+  if (!currentWord) {let unlock = new SpeechSynthesisUtterance("");
+speechSynthesis
     alert("資料尚未載入");
     return;
   }
-  // ⭐ 先清掉舊語音
-  speechSynthesis.cancel();
-
   //  🔓 先解鎖
 let unlock = new SpeechSynthesisUtterance("");
 speechSynthesis.speak(unlock);
-
-// ⭐ 再清掉舊語音
-speechSynthesis.cancel();
 
   index = 0;
   document.getElementById("phonics").innerText = "";

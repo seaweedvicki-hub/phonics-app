@@ -75,11 +75,10 @@ function speak(text) {
 
 // 🎬 自然發音動畫
 function playPhonics() {
-  if (!currentWord) {let unlock = new SpeechSynthesisUtterance("");
-speechSynthesis
-    alert("資料尚未載入");
-    return;
-  }
+if (!currentWord) {
+  alert("資料尚未載入");
+  return;
+}
   //  🔓 先解鎖
 let unlock = new SpeechSynthesisUtterance("");
 speechSynthesis.speak(unlock);

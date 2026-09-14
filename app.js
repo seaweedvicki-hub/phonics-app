@@ -4,11 +4,11 @@
 let words = [];
 let currentWord;
 let phonicsArray = [];
-let index = 0;
 
 let student = "";
 let learnList = [];
-let quizIndex = 0;
+let reviewQueue = []; // ⭐ 記憶曲線核心
+let currentIndex = 0;
 let score = 0;
 
 // ==========================
@@ -31,6 +31,7 @@ fetch(API_URL)
     })).filter(w => w.word);
   });
 
+
 // ==========================
 // 👤 登入
 // ==========================
@@ -44,23 +45,31 @@ function login() {
   startLearning();
 }
 
+
 // ==========================
-// 📚 開始10字學習
+// 📚 開始學習（10字）
 // ==========================
 function startLearning() {
   learnList = shuffle([...words]).slice(0, 10);
-  quizIndex = 0;
+
+  // ⭐ 初始化記憶曲線
+  reviewQueue = [...learnList];
+
+  currentIndex = 0;
+  score = 0;
+
   showLearn();
 }
 
+
 // ==========================
-// 📖 顯示學習
+// 📖 學習畫面
 // ==========================
 function showLearn() {
-  currentWord = learnList[quizIndex];
+  currentWord = learnList[currentIndex];
 
   document.getElementById("progress").innerText =
-    `📚 第 ${quizIndex + 1} / 10 字`;
+    `📚 學習 ${currentIndex + 1} / 10`;
 
   document.getElementById("word").innerText = currentWord.word;
   document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
@@ -72,22 +81,23 @@ function showLearn() {
   phonicsArray = currentWord.phonics?.split("-") || [];
 }
 
+
 // 下一個學習
 function nextLearn() {
-  quizIndex++;
-  if (quizIndex >= 10) {
+  currentIndex++;
+  if (currentIndex >= 10) {
     startQuizMode();
   } else {
     showLearn();
   }
 }
 
+
 // ==========================
 // 🎯 測驗開始
 // ==========================
 function startQuizMode() {
-  quizIndex = 0;
-  score = 0;
+  currentIndex = 0;
 
   document.getElementById("learnBox").classList.add("hidden");
   document.getElementById("quizBox").classList.remove("hidden");
@@ -95,16 +105,18 @@ function startQuizMode() {
   showQuiz();
 }
 
+
 // ==========================
-// ❓ 顯示題目
+// ❓ 顯示題目（記憶曲線）
 // ==========================
 function showQuiz() {
-  let q = learnList[quizIndex];
+  // ⭐ 從記憶隊列取題
+  currentWord = reviewQueue[0];
 
-  document.getElementById("quizWord").innerText = q.phonics;
+  document.getElementById("quizWord").innerText = currentWord.phonics;
 
   let choices = shuffle([...words]).slice(0, 3);
-  choices.push(q);
+  choices.push(currentWord);
   choices = shuffle(choices);
 
   let box = document.getElementById("choices");
@@ -118,28 +130,36 @@ function showQuiz() {
   });
 }
 
+
 // ==========================
-// ✅ 檢查答案
+// ✅ 檢查答案（核心🔥）
 // ==========================
 function checkAnswer(ans) {
-  let correct = learnList[quizIndex].word;
+  let correct = currentWord.word;
 
   if (ans === correct) {
     score++;
     document.getElementById("result").innerText = "✅ 正確";
+
+    // ⭐ 答對 → 移除
+    reviewQueue.shift();
+
   } else {
     document.getElementById("result").innerText = "❌ 錯誤";
+
+    // ⭐ 答錯 → 丟到後面（稍後再考）
+    reviewQueue.push(reviewQueue.shift());
   }
 
   setTimeout(() => {
-    quizIndex++;
-    if (quizIndex >= 10) {
+    if (reviewQueue.length === 0) {
       showResult();
     } else {
       showQuiz();
     }
   }, 800);
 }
+
 
 // ==========================
 // 📊 成績
@@ -149,8 +169,9 @@ function showResult() {
   document.getElementById("resultBox").classList.remove("hidden");
 
   document.getElementById("score").innerText =
-    `${student} 得分：${score} / 10`;
+    `${student} 完成！得分：${score}`;
 }
+
 
 // ==========================
 // 🔁 下一組
@@ -158,8 +179,10 @@ function showResult() {
 function nextGroup() {
   document.getElementById("resultBox").classList.add("hidden");
   document.getElementById("learnBox").classList.remove("hidden");
+
   startLearning();
 }
+
 
 // ==========================
 // 🔊 發音
@@ -171,10 +194,15 @@ function playPhonics() {
 }
 
 function speak(text) {
+  if (!text) return;
+
+  speechSynthesis.cancel();
+
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
 }
+
 
 // ==========================
 // 🔀 工具

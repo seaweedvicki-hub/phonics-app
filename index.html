@@ -2,51 +2,77 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<title>Phonics AI App</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Phonics Teacher</title>
 
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  background: #f5f7fb;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  margin: 10px;
+  border-radius: 15px;
+}
+
+img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+}
+
+button {
+  margin: 5px;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #4CAF50;
+  color: white;
+  font-size: 16px;
+}
+
+#choices img {
+  width: 80px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+</style>
 </head>
 
 <body>
 
 <!-- 👤 登入 -->
-<div id="loginBox">
-  <h2>👶 輸入名字</h2>
-  <input id="name">
-  <button onclick="login(name.value)">開始學習</button>
+<div class="card">
+  <input id="name" placeholder="輸入名字">
+  <button onclick="login()">登入</button>
+  <p id="user"></p>
 </div>
 
-<!-- 🎮 主畫面 -->
-<div id="app" style="display:none">
-
-  <div class="top-bar">
-    <span id="student"></span>
-    <span>⭐ <span id="score">0</span></span>
-    <span>🔥 <span id="streak">0</span></span>
-  </div>
-
-  <img id="image" class="img">
-
+<!-- 📘 學習區 -->
+<div class="card">
+  <img id="image">
   <h1 id="word"></h1>
   <p id="phonics"></p>
   <p id="meaning"></p>
 
-  <button onclick="playPhonics()">🔊 發音</button>
-  <button onclick="nextLearn()">下一個</button>
-  <button onclick="startQuizMode()">🎯 測驗</button>
-  <button onclick="teachMe()">🤖 教我</button>
+  <button onclick="playPhonics()">🎬 自然發音</button>
+  <button onclick="startSpeaking()">🎤 我來說</button>
+  <button onclick="nextWord()">下一個</button>
+  <button onclick="startQuiz()">🎯 測驗</button>
+</div>
 
-  <!-- 測驗 -->
-  <div id="quiz" style="display:none">
-    <h2>選出正確發音</h2>
-    <div id="choices"></div>
-    <p id="result"></p>
-  </div>
-
+<!-- 🎯 測驗 -->
+<div class="card">
+  <div id="choices"></div>
+  <p id="result"></p>
 </div>
 
 <script src="app.js"></script>
+
 </body>
 </html>

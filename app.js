@@ -1,14 +1,22 @@
+// =======================
+// 🔥 全域變數
+// =======================
 let words = [];
-let currentIndex = 0;
 let currentSet = [];
+let currentWord = null;
 let quizIndex = 0;
 let score = 0;
-let user = "";
+let user = localStorage.getItem("user") || "";
+
+// 🧠 記憶資料
+let memoryData = JSON.parse(localStorage.getItem("memoryData") || "{}");
 
 // Google Sheet API
 const API_URL = "https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
-// 🔥 載入資料
+// =======================
+// 📥 載入資料
+// =======================
 fetch(API_URL)
   .then(res => res.text())
   .then(text => {
@@ -25,7 +33,9 @@ fetch(API_URL)
     startLearningCycle();
   });
 
+// =======================
 // 🧑‍🎓 登入
+// =======================
 function login() {
   user = document.getElementById("name").value;
   localStorage.setItem("user", user);
@@ -34,71 +44,100 @@ function login() {
   document.querySelector(".app").classList.remove("hidden");
 }
 
-// 🔁 全單字跑一輪
+// =======================
+// 🔁 學習流程（10字一組）
+// =======================
 function startLearningCycle() {
   words = shuffle(words);
-  currentIndex = 0;
-  nextLearn();
+  loadNextSet();
 }
 
-// 📘 學習（10字一組）
-function nextLearn() {
-  if (currentIndex % 10 === 0) {
-    currentSet = words.slice(currentIndex, currentIndex + 10);
-  }
-
-  let w = currentSet[currentIndex % 10];
-
-  showWord(w);
-  currentIndex++;
+function loadNextSet() {
+  currentSet = words.slice(0, 10);
+  showWord(currentSet[0]);
 }
 
-// 🖼 顯示
+// =======================
+// 📘 顯示單字（含音節積木）
+// =======================
 function showWord(w) {
+  currentWord = w;
+
   document.getElementById("word").innerText = w.word;
   document.getElementById("meaning").innerText = "👉 " + w.meaning;
 
-  let img = document.getElementById("image");
-  img.src = w.image;
+  document.getElementById("image").src = w.image;
 
   let chunks = w.phonics.includes("-") ? w.phonics.split("-") : [w.word];
 
-  document.getElementById("phonics").innerText = chunks.join(" + ");
+  // ⭐ 積木UI
+  let html = "";
+  chunks.forEach(c => {
+    html += `<span class="chunk" onclick="speak('${c}')">${c}</span>`;
+  });
+
+  document.getElementById("phonics").innerHTML = html;
 }
 
+// =======================
 // 🔊 發音
-function playPhonics() {
-  let w = currentSet[(currentIndex - 1) % 10];
-  let chunks = w.phonics.includes("-") ? w.phonics.split("-") : [w.word];
-
-  speakChunks(chunks, 0, w.word);
-}
-
-function speakChunks(chunks, i, full) {
-  if (i >= chunks.length) {
-    setTimeout(() => speak(full), 400);
-    return;
-  }
-
-  speak(chunks[i]);
-  setTimeout(() => speakChunks(chunks, i + 1, full), 700);
-}
-
+// =======================
 function speak(text) {
+  speechSynthesis.cancel();
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
 }
 
-// 🎯 測驗模式
+// =======================
+// 🎬 拼音播放
+// =======================
+function playPhonics() {
+  let chunks = currentWord.phonics.includes("-")
+    ? currentWord.phonics.split("-")
+    : [currentWord.word];
+
+  speakChunks(chunks, 0);
+}
+
+function speakChunks(arr, i) {
+  if (i >= arr.length) {
+    setTimeout(() => speak(currentWord.word), 400);
+    return;
+  }
+
+  speak(arr[i]);
+  setTimeout(() => speakChunks(arr, i + 1), 700);
+}
+
+// =======================
+// 🎯 測驗模式（記憶曲線）
+// =======================
 function startQuizMode() {
   document.querySelector(".quiz").classList.remove("hidden");
+
+  currentSet = getReviewWords();
   quizIndex = 0;
   score = 0;
+
   nextQuiz();
 }
 
+// 🧠 取得要測驗的10字（記憶曲線核心）
+function getReviewWords() {
+  let now = Date.now();
+
+  let dueWords = words.filter(w => {
+    let m = memoryData[w.word];
+    return !m || m.nextTime <= now;
+  });
+
+  return shuffle(dueWords).slice(0, 10);
+}
+
+// =======================
 // 題目
+// =======================
 function nextQuiz() {
   if (quizIndex >= currentSet.length) {
     endQuiz();
@@ -107,46 +146,86 @@ function nextQuiz() {
 
   let correct = currentSet[quizIndex];
 
-  let choices = shuffle([...currentSet]).slice(0, 4);
+  let options = shuffle(words).slice(0, 4);
 
   let div = document.getElementById("choices");
   div.innerHTML = "";
 
-  choices.forEach(c => {
+  options.forEach(o => {
     let btn = document.createElement("button");
-    btn.innerText = c.word;
-    btn.onclick = () => checkAnswer(c.word, correct.word);
+    btn.innerText = o.word;
+    btn.onclick = () => checkAnswer(o.word, correct.word);
     div.appendChild(btn);
   });
 
   document.getElementById("word").innerText = correct.word;
 }
 
-// 判斷
+// =======================
+// 🧠 記憶曲線更新
+// =======================
+function updateMemory(word, isCorrect) {
+  let now = Date.now();
+
+  if (!memoryData[word]) {
+    memoryData[word] = { level: 0 };
+  }
+
+  if (isCorrect) {
+    memoryData[word].level++;
+  } else {
+    memoryData[word].level = 0;
+  }
+
+  // ⭐ 記憶曲線時間
+  let delay = [60000, 300000, 86400000]; // 1分,5分,1天
+
+  let level = memoryData[word].level;
+  let nextDelay = delay[Math.min(level, delay.length - 1)];
+
+  memoryData[word].nextTime = now + nextDelay;
+
+  localStorage.setItem("memoryData", JSON.stringify(memoryData));
+}
+
+// =======================
+// 判斷答案
+// =======================
 function checkAnswer(ans, correct) {
-  if (ans === correct) {
+  let isCorrect = ans === correct;
+
+  if (isCorrect) {
     score++;
     document.getElementById("result").innerText = "✅ 正確";
   } else {
-    document.getElementById("result").innerText = "❌ 錯誤";
+    document.getElementById("result").innerText = "❌ 再試一次";
   }
+
+  updateMemory(correct, isCorrect);
 
   quizIndex++;
   setTimeout(nextQuiz, 800);
 }
 
-// 🧠 測驗結束
+// =======================
+// 🎉 測驗結束
+// =======================
 function endQuiz() {
   document.getElementById("result").innerText = `🎉 得分：${score}/10`;
 
-  db.collection("results").add({
-    name: user,
-    score: score,
-    time: new Date()
-  });
+  // 存Firebase
+  if (typeof db !== "undefined") {
+    db.collection("results").add({
+      name: user,
+      score: score,
+      time: new Date()
+    });
+  }
 }
 
+// =======================
 // 🔀 工具
+// =======================
 function shuffle(arr) {
   return arr.sort(() => Math.random() - 0.5);
 }

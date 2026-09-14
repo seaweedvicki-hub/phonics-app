@@ -13,7 +13,7 @@
 
 <!-- 👤 登入 -->
 <div id="loginBox">
-  <h2>👶 小朋友名字</h2>
+  <h2>👶 輸入名字</h2>
   <input id="name">
   <button onclick="login(name.value)">開始學習</button>
 </div>
@@ -35,8 +35,10 @@
 
   <button onclick="playPhonics()">🔊 發音</button>
   <button onclick="nextLearn()">下一個</button>
+  <button onclick="startQuizMode()">🎯 測驗</button>
+  <button onclick="teachMe()">🤖 教我</button>
 
-  <!-- 🎯 測驗 -->
+  <!-- 測驗 -->
   <div id="quiz" style="display:none">
     <h2>選出正確發音</h2>
     <div id="choices"></div>

@@ -1,249 +1,176 @@
-// ==========================
-// 📦 全域
-// ==========================
 let words = [];
-let student = "";
-let level = 1;
-
-let learnList = [];
-let reviewQueue = [];
+let currentGroup = [];
+let currentIndex = 0;
 let currentWord;
-let score = 0;
+let phonicsArray = [];
+let index = 0;
 
-// ==========================
-// 📥 載入單字
-// ==========================
+const GROUP_SIZE = 10;
+
+// ⭐ Google Sheet API
 const API_URL = "https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
 fetch(API_URL)
-.then(res => res.text())
-.then(text => {
-  const json = JSON.parse(
-    text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
-  );
+  .then(res => res.text())
+  .then(text => {
+    const json = JSON.parse(
+      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+    );
 
-  words = json.table.rows.map(row => ({
-    word: row.c[0]?.v || "",
-    phonics: row.c[1]?.v || "",
-    meaning: row.c[2]?.v || "",
-    image: row.c[3]?.v || ""
-  })).filter(w => w.word);
-});
+    const rows = json.table.rows;
 
+    words = rows.map(row => ({
+      word: row.c[0]?.v || "",
+      phonics: row.c[1]?.v || "",
+      meaning: row.c[2]?.v || "",
+      image: row.c[3]?.v || ""
+    })).filter(w => w.word);
+
+    startLearning();
+  });
 
 // ==========================
-// 👤 登入
+// 🎯 初始化10字
 // ==========================
-function login() {
-  student = document.getElementById("name").value;
-  if (!student) return alert("請輸入名字");
-
-  document.querySelector(".login").classList.add("hidden");
-  document.getElementById("map").classList.remove("hidden");
-
-  loadMap();
-  loadReport();
+function startLearning() {
+  currentGroup = shuffle([...words]).slice(0, GROUP_SIZE);
+  currentIndex = 0;
+  showWord();
 }
 
-
 // ==========================
-// 🗺️ 地圖
+// 📘 顯示單字（預習模式）
 // ==========================
-function loadMap() {
-  let box = document.getElementById("levels");
-  box.innerHTML = "";
-
-  for (let i = 1; i <= 5; i++) {
-    let btn = document.createElement("button");
-    btn.innerText = "關卡 " + i;
-
-    if (i <= level) {
-      btn.onclick = () => startLevel(i);
-    } else {
-      btn.disabled = true;
-    }
-
-    box.appendChild(btn);
-  }
-}
-
-
-// ==========================
-// 🎮 開始關卡
-// ==========================
-function startLevel(lv) {
-  level = lv;
-
-  learnList = shuffle([...words]).slice(0, 10);
-  reviewQueue = [...learnList];
-  score = 0;
-
-  document.getElementById("map").classList.add("hidden");
-  document.getElementById("learnBox").classList.remove("hidden");
-
-  showLearn(0);
-}
-
-
-// ==========================
-// 📚 學習
-// ==========================
-function showLearn(i) {
-  currentWord = learnList[i];
-
-  document.getElementById("progress").innerText =
-    `關卡 ${level} - ${i+1}/10`;
+function showWord() {
+  currentWord = currentGroup[currentIndex];
 
   document.getElementById("word").innerText = currentWord.word;
-  document.getElementById("meaning").innerText = currentWord.meaning;
-  document.getElementById("phonics").innerText = currentWord.phonics;
+  document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
 
-  document.getElementById("image").src =
-    currentWord.image || "https://via.placeholder.com/150";
+  const img = document.getElementById("image");
+  img.src = currentWord.image || "";
+  img.onerror = () => {
+    img.onerror = null;
+    img.src = "https://via.placeholder.com/150";
+  };
 
-  window.learnIndex = i;
+  phonicsArray = currentWord.phonics && currentWord.phonics.includes("-")
+    ? currentWord.phonics.split("-")
+    : [currentWord.word];
+
+  document.getElementById("phonics").innerText =
+    phonicsArray.map(p => "[" + p + "]").join(" ");
 }
 
+// ==========================
+// ▶ 下一個（預習）
+// ==========================
 function nextLearn() {
-  let i = window.learnIndex + 1;
+  currentIndex++;
 
-  if (i >= 10) {
-    startQuiz();
-  } else {
-    showLearn(i);
-  }
-}
-
-
-// ==========================
-// 🎯 測驗（記憶曲線）
-// ==========================
-function startQuiz() {
-  document.getElementById("learnBox").classList.add("hidden");
-  document.getElementById("quizBox").classList.remove("hidden");
-  showQuiz();
-}
-
-function showQuiz() {
-  currentWord = reviewQueue[0];
-
-  document.getElementById("quizWord").innerText = currentWord.phonics;
-
-  let choices = shuffle([...words]).slice(0, 3);
-  choices.push(currentWord);
-  choices = shuffle(choices);
-
-  let box = document.getElementById("choices");
-  box.innerHTML = "";
-
-  choices.forEach(c => {
-    let img = document.createElement("img");
-    img.src = c.image || "https://via.placeholder.com/100";
-    img.onclick = () => checkAnswer(c.word);
-    box.appendChild(img);
-  });
-}
-
-
-// ==========================
-// ✅ 檢查答案（記憶曲線）
-// ==========================
-function checkAnswer(ans) {
-  if (ans === currentWord.word) {
-    score++;
-    reviewQueue.shift();
-  } else {
-    reviewQueue.push(reviewQueue.shift());
+  if (currentIndex >= currentGroup.length) {
+    alert("✅ 預習完成！準備測驗");
+    startQuizMode();
+    return;
   }
 
-  if (reviewQueue.length === 0) {
-    finishLevel();
-  } else {
-    showQuiz();
-  }
+  showWord();
 }
-
-
-// ==========================
-// 🏁 結束關卡
-// ==========================
-function finishLevel() {
-  document.getElementById("quizBox").classList.add("hidden");
-  document.getElementById("resultBox").classList.remove("hidden");
-
-  document.getElementById("score").innerText =
-    `${student} 關卡 ${level}：${score} 分`;
-
-  saveReport();
-
-  level++;
-}
-
-
-// ==========================
-// 📊 家長報告（LocalStorage）
-// ==========================
-function saveReport() {
-  let data = JSON.parse(localStorage.getItem("report") || "{}");
-
-  if (!data[student]) data[student] = [];
-
-  data[student].push({
-    level: level,
-    score: score,
-    time: new Date().toLocaleString()
-  });
-
-  localStorage.setItem("report", JSON.stringify(data));
-}
-
-function loadReport() {
-  let data = JSON.parse(localStorage.getItem("report") || "{}");
-  let box = document.getElementById("report");
-
-  if (!data[student]) return;
-
-  box.innerHTML = "<h3>📊 學習紀錄</h3>";
-
-  data[student].forEach(r => {
-    let p = document.createElement("p");
-    p.innerText = `關卡${r.level}：${r.score}分 (${r.time})`;
-    box.appendChild(p);
-  });
-}
-
-
-// ==========================
-// 🔙 回地圖
-// ==========================
-function backToMap() {
-  document.getElementById("resultBox").classList.add("hidden");
-  document.getElementById("map").classList.remove("hidden");
-
-  loadMap();
-  loadReport();
-}
-
 
 // ==========================
 // 🔊 發音
 // ==========================
-function playPhonics() {
-  let arr = currentWord.phonics.split("-");
-  arr.forEach((p, i) => {
-    setTimeout(() => speak(p), i * 600);
-  });
-}
-
 function speak(text) {
+  if (!text) return;
+
+  speechSynthesis.cancel();
+
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
 }
 
+// ==========================
+// 🎬 自然發音（逐個拼）
+// ==========================
+function playPhonics() {
+  if (!currentWord) return;
+
+  speechSynthesis.cancel();
+
+  // ⭐ 解鎖語音
+  let unlock = new SpeechSynthesisUtterance(".");
+  unlock.volume = 0;
+  speechSynthesis.speak(unlock);
+
+  index = 0;
+  document.getElementById("phonics").innerText = "";
+
+  setTimeout(playNext, 200);
+}
+
+function playNext() {
+  if (index >= phonicsArray.length) {
+    setTimeout(() => {
+      document.getElementById("phonics").innerText = currentWord.word;
+      speak(currentWord.word);
+    }, 500);
+    return;
+  }
+
+  let sound = phonicsArray[index];
+
+  document.getElementById("phonics").innerText += "[" + sound + "] ";
+  speak(sound);
+
+  index++;
+  setTimeout(playNext, 700);
+}
 
 // ==========================
-// 🔀 工具
+// 🎯 測驗模式
+// ==========================
+function startQuizMode() {
+  document.getElementById("result").innerText = "";
+  showQuiz();
+}
+
+function showQuiz() {
+  currentWord = currentGroup[Math.floor(Math.random() * currentGroup.length)];
+
+  document.getElementById("word").innerText = "🔊 聽音選字";
+  document.getElementById("meaning").innerText = "";
+
+  speak(currentWord.word);
+
+  let choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  let options = shuffle([...currentGroup]).slice(0, 4);
+
+  options.forEach(option => {
+    let btn = document.createElement("button");
+    btn.innerText = option.word;
+    btn.onclick = () => checkAnswer(option.word);
+    choicesDiv.appendChild(btn);
+  });
+}
+
+// ==========================
+// ✔ 檢查答案
+// ==========================
+function checkAnswer(ans) {
+  if (ans === currentWord.word) {
+    document.getElementById("result").innerText = "✅ 答對！";
+  } else {
+    document.getElementById("result").innerText = "❌ 再試一次";
+  }
+
+  setTimeout(showQuiz, 1000);
+}
+
+// ==========================
+// 🔀 洗牌
 // ==========================
 function shuffle(arr) {
   return arr.sort(() => Math.random() - 0.5);

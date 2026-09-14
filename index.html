@@ -2,61 +2,50 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AI Phonics App</title>
-
+<title>Phonics AI App</title>
 <link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
 
-<!-- Firebase CDN -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-
 </head>
+
 <body>
 
 <div class="app">
 
-  <!-- 👤 登入 -->
-  <div id="login">
-    <h2>🤖 AI英文老師</h2>
-    <input id="name" placeholder="學生名字">
-    <button onclick="login()">開始學習</button>
-  </div>
+<!-- 👤 登入 -->
+<div id="login">
+  <h2>🎓 AI英文老師</h2>
+  <input id="name" placeholder="輸入學生名字">
+  <button onclick="login()">開始</button>
+</div>
 
-  <!-- 🗺️ 主畫面 -->
-  <div id="home" class="hidden">
-    <h2 id="username"></h2>
+<!-- 🏠 主頁 -->
+<div id="home" class="hidden">
+  <h2 id="username"></h2>
 
-    <button onclick="startLearn()">📚 開始學習</button>
-    <button onclick="startQuiz()">🎯 測驗</button>
-    <button onclick="startAI()">🤖 AI老師</button>
-    <button onclick="showReport()">📊 家長報告</button>
-  </div>
+  <button onclick="startLearn()">📚 開始學習</button>
+  <button onclick="generateAIWords()">🤖 AI出10字</button>
+  <button onclick="startQuiz()">🎯 測驗</button>
+  <button onclick="showReport()">📊 家長報告</button>
+</div>
 
-  <!-- 📚 學習 -->
-  <div id="learn" class="hidden">
-    <h1 id="word"></h1>
-    <p id="phonics"></p>
-    <p id="meaning"></p>
-    <button onclick="playPhonics()">🔊</button>
-    <button onclick="startSpeech()">🎤</button>
-    <button onclick="nextLearn()">下一個</button>
-  </div>
+<!-- 📚 學習 -->
+<div id="learn" class="hidden">
+  <h1 id="word"></h1>
+  <p id="phonics"></p>
+  <p id="meaning"></p>
 
-  <!-- 🤖 AI -->
-  <div id="ai" class="hidden">
-    <h2>AI老師</h2>
-    <div id="chat"></div>
-    <input id="aiInput">
-    <button onclick="askAI()">送出</button>
-  </div>
+  <button onclick="playPhonics()">🔊</button>
+  <button onclick="nextLearn()">下一個</button>
+</div>
 
-  <!-- 📊 報告 -->
-  <div id="report" class="hidden">
-    <h2>學習報告</h2>
-    <div id="reportData"></div>
-    <button onclick="backHome()">返回</button>
-  </div>
+<!-- 📊 家長 -->
+<div id="report" class="hidden">
+  <h2>📊 學習報告</h2>
+  <div id="reportData"></div>
+  <button onclick="backHome()">返回</button>
+</div>
 
 </div>
 

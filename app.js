@@ -1,87 +1,57 @@
-// =======================
-// 👤 使用者
-// =======================
 let user = "";
 
 // =======================
-// 📚 單字資料
+// 📚 資料
 // =======================
 let words = [];
 let currentSet = [];
-let memoryPool = [];
-let wrongWords = {};
+let reviewSet = [];
+let memoryData = JSON.parse(localStorage.getItem("memory")||"{}");
 
 // =======================
-// 🎮 狀態
+// 📅 每日任務
 // =======================
-let index = 0;
-let level = 1;
-let currentWord = null;
+function generateDailyMission(){
 
-// =======================
-// 🎤 語音
-// =======================
-let recognition;
+  let today = new Date().toDateString();
 
-function initSpeech(){
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US";
+  if(localStorage.getItem("today") === today){
+    currentSet = JSON.parse(localStorage.getItem("todayWords"));
+    return;
+  }
+
+  // 🤖 AI生成
+  if(window.aiWords && window.aiWords.length){
+    currentSet = window.aiWords;
+  }else{
+    currentSet = shuffle(words).slice(0,10);
+  }
+
+  localStorage.setItem("today", today);
+  localStorage.setItem("todayWords", JSON.stringify(currentSet));
 }
 
 // =======================
 // 👤 登入
 // =======================
 function login(){
+
   user = document.getElementById("name").value;
+  if(!user) return alert("請輸入名字");
 
-  if(!user){
-    alert("請輸入名字");
-    return;
-  }
-
-  initSpeech();
+  generateLesson(); // 🤖 AI產生
+  generateDailyMission(); // 📅 今日任務
 
   show("home");
-  document.getElementById("username").innerText = "👋 " + user;
 }
 
 // =======================
-// 🎨 UI切換
+// 📚 學習
 // =======================
-function show(id){
-  document.querySelectorAll(".app > div").forEach(d=>d.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
+let index=0;
 
-// =======================
-// 📚 載入資料（Google Sheet）
-// =======================
-const API_URL ="https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
-
-fetch(API_URL)
-.then(res=>res.text())
-.then(text=>{
-  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}")+1));
-
-  words = json.table.rows.map(r=>({
-    word:r.c[0]?.v||"",
-    phonics:r.c[1]?.v||"",
-    meaning:r.c[2]?.v||"",
-    image:r.c[3]?.v||""
-  })).filter(w=>w.word);
-});
-
-// =======================
-// 📚 學習（10字）
-// =======================
 function startLearn(){
-
-  currentSet = (window.aiWords && window.aiWords.length)
-    ? window.aiWords
-    : shuffle(words).slice(0,10);
-
   index = 0;
-
   show("learn");
   showWord();
 }
@@ -92,9 +62,7 @@ function showWord(){
 
   document.getElementById("word").innerText = w.word;
   document.getElementById("phonics").innerText = w.phonics;
-  document.getElementById("meaning").innerText = "👉 " + w.meaning;
-
-  speak(w.word);
+  document.getElementById("meaning").innerText = w.meaning;
 }
 
 function nextLearn(){
@@ -102,8 +70,7 @@ function nextLearn(){
   index++;
 
   if(index >= currentSet.length){
-    alert("🎉 學習完成，開始闖關！");
-    startMap();
+    startQuiz();
     return;
   }
 
@@ -111,27 +78,10 @@ function nextLearn(){
 }
 
 // =======================
-// 🗺️ 闖關地圖
+// 🎯 測驗
 // =======================
-function startMap(){
-  show("map");
+let currentWord;
 
-  let html = "";
-
-  for(let i=1;i<=5;i++){
-    html += `
-      <button onclick="startQuiz()" ${i>level?"disabled":""}>
-        關卡 ${i}
-      </button>
-    `;
-  }
-
-  document.getElementById("mapArea").innerHTML = html;
-}
-
-// =======================
-// 🎯 測驗（拖曳拼音）
-// =======================
 function startQuiz(){
   show("quiz");
   nextQuiz();
@@ -142,16 +92,12 @@ function nextQuiz(){
   currentWord = pickWord();
 
   document.getElementById("target").innerText = currentWord.phonics;
-  document.getElementById("dropZone").innerText = "";
+  document.getElementById("dropZone").innerText="";
 
   let letters = shuffle(currentWord.word.split(""));
-  let html = "";
 
-  letters.forEach(l=>{
-    html += `<button draggable="true" ondragstart="drag(event)">${l}</button>`;
-  });
-
-  document.getElementById("choices").innerHTML = html;
+  document.getElementById("choices").innerHTML =
+    letters.map(l=>`<button draggable="true" ondragstart="drag(event)">${l}</button>`).join("");
 }
 
 // 拖曳
@@ -173,66 +119,76 @@ document.addEventListener("drop", e=>{
 });
 
 // =======================
-// ✅ 判斷答案
+// 🧠 記憶曲線（升級🔥）
+// =======================
+function updateMemory(word, correct){
+
+  let now = Date.now();
+
+  if(!memoryData[word]){
+    memoryData[word] = {level:0,next:now};
+  }
+
+  if(correct){
+    memoryData[word].level++;
+  }else{
+    memoryData[word].level = 0;
+  }
+
+  let gap = [1,3,7][memoryData[word].level] || 7;
+
+  memoryData[word].next = now + gap*86400000;
+
+  localStorage.setItem("memory", JSON.stringify(memoryData));
+}
+
+// =======================
+// 🎯 判斷
 // =======================
 function checkAnswer(ans){
 
-  if(ans === currentWord.word){
-    alert("✅ 正確");
-  }else{
-    alert("❌ 再試一次");
+  let correct = ans === currentWord.word;
 
-    wrongWords[currentWord.word] =
-      (wrongWords[currentWord.word] || 0) + 1;
+  updateMemory(currentWord.word, correct);
 
-    memoryPool.push(currentWord);
+  if(!correct){
+    reviewSet.push(currentWord);
   }
 
   nextQuiz();
 }
 
 // =======================
-// 🧠 記憶曲線
+// 🧠 抽題（記憶曲線）
 // =======================
 function pickWord(){
 
-  if(memoryPool.length > 0 && Math.random() < 0.6){
-    return memoryPool[Math.floor(Math.random()*memoryPool.length)];
+  let now = Date.now();
+
+  let dueWords = currentSet.filter(w=>{
+    return !memoryData[w.word] || memoryData[w.word].next <= now;
+  });
+
+  if(dueWords.length){
+    return dueWords[Math.floor(Math.random()*dueWords.length)];
   }
 
   return currentSet[Math.floor(Math.random()*currentSet.length)];
 }
 
 // =======================
-// 🔥 錯字專屬練習
-// =======================
-function startWeakPractice(){
-
-  let weakList = Object.keys(wrongWords)
-    .map(w => words.find(x=>x.word===w))
-    .filter(Boolean);
-
-  if(!weakList.length){
-    alert("目前沒有錯字！");
-    return;
-  }
-
-  currentSet = weakList;
-  startQuiz();
-}
-
-// =======================
 // 🎤 口說
 // =======================
-function startSpeaking(){
-  show("speaking");
-  nextSpeak();
-}
+let recognition;
 
-function nextSpeak(){
+function startSpeaking(){
+
+  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang="en-US";
+
+  show("speaking");
 
   currentWord = currentSet[Math.floor(Math.random()*currentSet.length)];
-
   document.getElementById("speakWord").innerText = currentWord.word;
 }
 
@@ -242,66 +198,12 @@ function startRecording(){
 
   recognition.onresult = function(e){
 
-    let spoken = e.results[0][0].transcript.toLowerCase();
-    let target = currentWord.word.toLowerCase();
-
-    let score = (spoken === target) ? 100 : 60;
+    let said = e.results[0][0].transcript.toLowerCase();
+    let score = (said === currentWord.word) ? 100 : 60;
 
     document.getElementById("speakResult").innerText =
-      `你說：${spoken}｜分數：${score}`;
-
-    saveRecord(user,{
-      type:"speaking",
-      word:target,
-      spoken,
-      score,
-      time:new Date().toLocaleString()
-    });
+      `你說:${said} 分數:${score}`;
   };
-}
-
-// =======================
-// 📊 家長報告（雲端）
-// =======================
-async function showReport(){
-
-  show("report");
-
-  let data = await loadReport(user);
-
-  let html = "";
-
-  data.forEach(d=>{
-    html += `
-      <div>
-        <p>📅 ${d.time}</p>
-        <p>分數：${d.score || "-"}</p>
-        <p>關卡：${d.level || "-"}</p>
-        <p>錯字：${Object.keys(d.wrongWords||{}).join(", ")}</p>
-      </div>
-      <hr>
-    `;
-  });
-
-  document.getElementById("reportData").innerHTML =
-    html || "尚無資料";
-}
-
-// =======================
-// 🤖 AI老師入口
-// =======================
-function openAI(){
-  show("ai");
-}
-
-// =======================
-// 🔊 發音
-// =======================
-function speak(text){
-  speechSynthesis.cancel();
-  let msg = new SpeechSynthesisUtterance(text);
-  msg.lang = "en-US";
-  speechSynthesis.speak(msg);
 }
 
 // =======================
@@ -309,4 +211,12 @@ function speak(text){
 // =======================
 function shuffle(arr){
   return arr.sort(()=>Math.random()-0.5);
+}
+
+// =======================
+// 🎨 UI
+// =======================
+function show(id){
+  document.querySelectorAll(".app > div").forEach(d=>d.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
 }

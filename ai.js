@@ -1,4 +1,6 @@
-async function generateAIWords(){
+async function askAI(){
+
+  let input = document.getElementById("aiInput").value;
 
   let res = await fetch("https://api.openai.com/v1/chat/completions",{
     method:"POST",
@@ -11,21 +13,18 @@ async function generateAIWords(){
       messages:[
         {
           role:"system",
-          content:"請產生10個國小英文單字，格式：word|phonics|中文，每行一個"
-        }
+          content:"你是一個溫柔的英文老師，用簡單英文+中文教小學生"
+        },
+        {role:"user",content:input}
       ]
     })
   });
 
   let data = await res.json();
-  let text = data.choices[0].message.content;
+  let reply = data.choices[0].message.content;
 
-  let lines = text.split("\n");
-
-  window.aiWords = lines.map(l=>{
-    let [w,p,m] = l.split("|");
-    return {word:w, phonics:p, meaning:m};
-  });
-
-  alert("✅ AI已產生10字！");
+  document.getElementById("chatBox").innerHTML += `
+    <p>👦 ${input}</p>
+    <p>👩‍🏫 ${reply}</p>
+  `;
 }

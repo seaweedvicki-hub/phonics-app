@@ -1,3 +1,6 @@
+// ==========================
+// 📦 全域變數
+// ==========================
 let words = [];
 let currentGroup = [];
 let currentIndex = 0;
@@ -5,9 +8,14 @@ let currentWord;
 let phonicsArray = [];
 let index = 0;
 
+let quizCount = 0;     // ⭐ 做了幾題
+let correctCount = 0;  // ⭐ 答對幾題
+
 const GROUP_SIZE = 10;
 
-// ⭐ Google Sheet API
+// ==========================
+// 🌐 Google Sheet API
+// ==========================
 const API_URL = "https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
 fetch(API_URL)
@@ -27,6 +35,9 @@ fetch(API_URL)
     })).filter(w => w.word);
 
     startLearning();
+  })
+  .catch(() => {
+    alert("❌ 無法讀取單字資料");
   });
 
 // ==========================
@@ -47,6 +58,7 @@ function showWord() {
   document.getElementById("word").innerText = currentWord.word;
   document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
 
+  // 🖼 圖片防呆
   const img = document.getElementById("image");
   img.src = currentWord.image || "";
   img.onerror = () => {
@@ -54,10 +66,12 @@ function showWord() {
     img.src = "https://via.placeholder.com/150";
   };
 
+  // 🧩 拼音拆解
   phonicsArray = currentWord.phonics && currentWord.phonics.includes("-")
     ? currentWord.phonics.split("-")
     : [currentWord.word];
 
+  // 顯示積木
   document.getElementById("phonics").innerText =
     phonicsArray.map(p => "[" + p + "]").join(" ");
 }
@@ -98,7 +112,7 @@ function playPhonics() {
 
   speechSynthesis.cancel();
 
-  // ⭐ 解鎖語音
+  // ⭐ 解鎖語音（手機必要）
   let unlock = new SpeechSynthesisUtterance(".");
   unlock.volume = 0;
   speechSynthesis.speak(unlock);
@@ -132,13 +146,25 @@ function playNext() {
 // ==========================
 function startQuizMode() {
   document.getElementById("result").innerText = "";
+
+  quizCount = 0;
+  correctCount = 0;
+
   showQuiz();
 }
 
 function showQuiz() {
+
+  // ⭐ 10題結束
+  if (quizCount >= 10) {
+    showResult();
+    return;
+  }
+
   currentWord = currentGroup[Math.floor(Math.random() * currentGroup.length)];
 
   document.getElementById("word").innerText = "🔊 聽音選字";
+  document.getElementById("phonics").innerText = "";
   document.getElementById("meaning").innerText = "";
 
   speak(currentWord.word);
@@ -160,13 +186,34 @@ function showQuiz() {
 // ✔ 檢查答案
 // ==========================
 function checkAnswer(ans) {
+
+  quizCount++; // ⭐ 題數+1
+
   if (ans === currentWord.word) {
+    correctCount++; // ⭐ 答對+1
     document.getElementById("result").innerText = "✅ 答對！";
   } else {
     document.getElementById("result").innerText = "❌ 再試一次";
   }
 
   setTimeout(showQuiz, 1000);
+}
+
+// ==========================
+// 🎉 顯示成績
+// ==========================
+function showResult() {
+  document.getElementById("choices").innerHTML = "";
+
+  document.getElementById("word").innerText = "🎉 測驗完成！";
+  document.getElementById("phonics").innerText = "";
+  document.getElementById("meaning").innerText =
+    "👉 成績：" + correctCount + " / 10";
+
+  // ⭐ 3秒後進下一組
+  setTimeout(() => {
+    startLearning();
+  }, 3000);
 }
 
 // ==========================

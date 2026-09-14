@@ -2,68 +2,45 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>自然發音拼字記憶大師</title>
-
+<title>Phonics App</title>
 <link rel="stylesheet" href="style.css">
-
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
 </head>
-
 <body>
 
-<!-- 🧑‍🎓 登入 -->
+<!-- 👤 登入 -->
 <div class="login">
   <input id="name" placeholder="輸入名字">
   <button onclick="login()">開始學習</button>
 </div>
 
-<!-- 🎯 主畫面 -->
+<!-- 🎮 主APP -->
 <div class="app hidden">
 
-  <h1>🦁 自然發音拼字記憶大師</h1>
+  <h2 id="player"></h2>
+
+  <!-- 🗺 闖關地圖 -->
+  <div id="map"></div>
 
   <div class="card">
-    <img id="image" class="word-img">
+    <img id="image" width="150">
 
     <h1 id="word"></h1>
-    <p id="phonics"></p>
+    <div id="phonics"></div>
     <p id="meaning"></p>
 
-    <button onclick="playPhonics()">🔊 發音拆解</button>
+    <button onclick="playPhonics()">🔊 發音</button>
     <button onclick="nextLearn()">下一個</button>
-    <button onclick="startQuizMode()">開始測驗</button>
+    <button onclick="startQuizMode()">🎯 測驗</button>
   </div>
 
-  <!-- 🎯 測驗 -->
   <div class="quiz hidden">
-    <h2>🧠 拼字測驗</h2>
+    <h3>選出正確答案</h3>
     <div id="choices"></div>
     <p id="result"></p>
   </div>
 
 </div>
 
-<!-- Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSy...",
-  authDomain: "phonics-app-b431f.firebaseapp.com",
-  projectId: "phonics-app-b431f",
-  storageBucket: "phonics-app-b431f.firebasestorage.app",
-  messagingSenderId: "1002693648037",
-  appId: "1:1002693648037:web:bbe7970a7d732c218a774c"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-</script>
-
 <script src="app.js"></script>
-
 </body>
 </html>

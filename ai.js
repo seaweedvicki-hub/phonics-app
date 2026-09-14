@@ -1,6 +1,7 @@
-async function askAI(){
-
-  let input = document.getElementById("aiInput").value;
+// =======================
+// 🤖 AI生成課程
+// =======================
+async function generateLesson(){
 
   let res = await fetch("https://api.openai.com/v1/chat/completions",{
     method:"POST",
@@ -13,18 +14,19 @@ async function askAI(){
       messages:[
         {
           role:"system",
-          content:"你是一個溫柔的英文老師，用簡單英文+中文教小學生"
-        },
-        {role:"user",content:input}
+          content:"你是一個國小英文老師，請產生10個英文單字，格式為 JSON 陣列，包含 word, phonics(用-分開), meaning"
+        }
       ]
     })
   });
 
   let data = await res.json();
-  let reply = data.choices[0].message.content;
+  let text = data.choices[0].message.content;
 
-  document.getElementById("chatBox").innerHTML += `
-    <p>👦 ${input}</p>
-    <p>👩‍🏫 ${reply}</p>
-  `;
+  try{
+    window.aiWords = JSON.parse(text);
+  }catch{
+    alert("AI格式錯誤，使用預設單字");
+    window.aiWords = null;
+  }
 }

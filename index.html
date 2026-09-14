@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Phonics App</title>
+<title>Phonics Game</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -10,10 +10,16 @@
 <!-- 👤 登入 -->
 <div class="login">
   <input id="name" placeholder="輸入名字">
-  <button onclick="login()">開始學習</button>
+  <button onclick="login()">開始冒險</button>
 </div>
 
-<!-- 📚 學習區 -->
+<!-- 🗺️ 遊戲地圖 -->
+<div id="map" class="hidden">
+  <h2>🌍 闖關地圖</h2>
+  <div id="levels"></div>
+</div>
+
+<!-- 📚 學習 -->
 <div class="card hidden" id="learnBox">
   <h2 id="progress"></h2>
 
@@ -25,7 +31,6 @@
 
   <button onclick="playPhonics()">🔊 發音</button>
   <button onclick="nextLearn()">下一個</button>
-  <button onclick="startQuizMode()">開始測驗</button>
 </div>
 
 <!-- 🎯 測驗 -->
@@ -35,11 +40,14 @@
   <p id="result"></p>
 </div>
 
-<!-- 📊 結果 -->
+<!-- 📊 成績 -->
 <div class="result hidden" id="resultBox">
   <h2 id="score"></h2>
-  <button onclick="nextGroup()">下一組</button>
+  <button onclick="backToMap()">回地圖</button>
 </div>
+
+<!-- 📊 家長報告 -->
+<div id="report"></div>
 
 <script src="app.js"></script>
 

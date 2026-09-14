@@ -1,203 +1,189 @@
-// =====================
-// 🔥 基本資料
-// =====================
+// ==========================
+// 📦 全域變數
+// ==========================
 let words = [];
-let currentSet = [];
-let currentIndex = 0;
-let currentWord = null;
-let score = 0;
-let user = "";
+let currentWord;
+let phonicsArray = [];
+let index = 0;
 
-// 🧠 記憶曲線
-let memoryData = JSON.parse(localStorage.getItem("memoryData") || "{}");
+// ⭐ Google Sheet API
+const API_URL = "https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
-// =====================
-// 📥 載入單字
-// =====================
-const API_URL = "你的GoogleSheetAPI";
-
+// ==========================
+// 📥 載入資料
+// ==========================
 fetch(API_URL)
-.then(res => res.text())
-.then(text => {
-  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
-  const rows = json.table.rows;
+  .then(res => res.text())
+  .then(text => {
+    try {
+      const json = JSON.parse(
+        text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+      );
 
-  words = rows.map(r => ({
-    word: r.c[0]?.v || "",
-    phonics: r.c[1]?.v || "",
-    meaning: r.c[2]?.v || "",
-    image: r.c[3]?.v || ""
-  })).filter(w => w.word);
+      const rows = json.table.rows;
 
-});
+      words = rows
+        .map(row => ({
+          word: row.c[0]?.v || "",
+          phonics: row.c[1]?.v || "",
+          meaning: row.c[2]?.v || "",
+          image: row.c[3]?.v || ""
+        }))
+        .filter(item => item.word);
 
-// =====================
-// 👤 登入
-// =====================
-function login() {
-  user = document.getElementById("name").value;
-  document.querySelector(".login").classList.add("hidden");
-  document.querySelector(".app").classList.remove("hidden");
+      if (words.length === 0) {
+        throw new Error("資料是空的");
+      }
 
-  document.getElementById("player").innerText = "👶 " + user;
+      nextWord();
 
-  generateMap();
-  startLearning();
-}
-
-// =====================
-// 🗺 闖關地圖
-// =====================
-function generateMap() {
-  let map = document.getElementById("map");
-  map.innerHTML = "";
-
-  for (let i = 0; i < 10; i++) {
-    let node = document.createElement("span");
-    node.innerText = "🔒";
-    map.appendChild(node);
-  }
-}
-
-// =====================
-// 📘 學習
-// =====================
-function startLearning() {
-  currentSet = shuffle(words).slice(0, 10);
-  currentIndex = 0;
-  showWord();
-}
-
-function showWord() {
-  currentWord = currentSet[currentIndex];
-
-  document.getElementById("word").innerText = currentWord.word;
-  document.getElementById("meaning").innerText = currentWord.meaning;
-
-  document.getElementById("image").src = currentWord.image;
-
-  let chunks = currentWord.phonics.includes("-")
-    ? currentWord.phonics.split("-")
-    : [currentWord.word];
-
-  let html = "";
-  chunks.forEach(c => {
-    html += `<span onclick="speak('${c}')">${c}</span>`;
+    } catch (e) {
+      console.error("❌ 解析失敗", e);
+      alert("資料讀取失敗");
+    }
+  })
+  .catch(err => {
+    console.error("❌ API錯誤", err);
+    alert("無法連線");
   });
 
-  document.getElementById("phonics").innerHTML = html;
-}
 
-// 下一個
-function nextLearn() {
-  currentIndex++;
-  if (currentIndex >= currentSet.length) {
-    alert("學習完成，開始測驗！");
-    startQuizMode();
+// ==========================
+// 📖 顯示單字
+// ==========================
+function nextWord() {
+  if (!words.length) {
+    console.log("⚠️ 尚未載入資料");
     return;
   }
-  showWord();
+
+  // 🎲 隨機選字
+  currentWord = words[Math.floor(Math.random() * words.length)];
+
+  // 📌 顯示內容
+  document.getElementById("word").innerText = currentWord.word;
+  document.getElementById("phonics").innerText = "";
+  document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
+
+  // 🖼️ 圖片（含錯誤備援）
+  const img = document.getElementById("image");
+  img.src = currentWord.image || "https://via.placeholder.com/150";
+
+  img.onerror = () => {
+    img.onerror = null;
+    img.src = "https://via.placeholder.com/150";
+  };
+
+  // 🔤 音節拆解
+  phonicsArray = currentWord.phonics && currentWord.phonics.includes("-")
+    ? currentWord.phonics.split("-")
+    : [currentWord.word];
 }
 
-// =====================
+
+// ==========================
 // 🔊 發音
-// =====================
+// ==========================
 function speak(text) {
+  if (!text) return;
+
+  speechSynthesis.cancel(); // ⭐ 防止重疊
+
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);
 }
 
-// =====================
-// 🎯 測驗
-// =====================
-function startQuizMode() {
-  document.querySelector(".quiz").classList.remove("hidden");
 
-  currentIndex = 0;
-  score = 0;
-
-  nextQuiz();
-}
-
-function nextQuiz() {
-  if (currentIndex >= currentSet.length) {
-    endQuiz();
+// ==========================
+// 🎬 自然發音動畫（音節播放）
+// ==========================
+function playPhonics() {
+  if (!currentWord) {
+    alert("資料尚未載入");
     return;
   }
 
-  let correct = currentSet[currentIndex];
+  // 🔓 解鎖語音（手機必要）
+  let unlock = new SpeechSynthesisUtterance("ok");
+  speechSynthesis.speak(unlock);
 
-  let options = shuffle(words).slice(0, 4);
+  // ⭐ 延遲清掉
+  setTimeout(() => {
+    speechSynthesis.cancel();
+  }, 100);
 
-  let div = document.getElementById("choices");
-  div.innerHTML = "";
+  index = 0;
+  document.getElementById("phonics").innerText = "";
 
-  options.forEach(o => {
-    let btn = document.createElement("button");
-    btn.innerText = o.word;
-    btn.onclick = () => checkAnswer(o.word, correct.word);
-    div.appendChild(btn);
-  });
-
-  document.getElementById("word").innerText = correct.word;
+  setTimeout(() => {
+    playNext();
+  }, 200);
 }
 
-// =====================
-// 🧠 記憶曲線
-// =====================
-function updateMemory(word, correct) {
-  let now = Date.now();
 
-  if (!memoryData[word]) memoryData[word] = { level: 0 };
-
-  if (correct) memoryData[word].level++;
-  else memoryData[word].level = 0;
-
-  let delay = [60000, 300000, 86400000];
-  let lvl = memoryData[word].level;
-
-  memoryData[word].nextTime = now + delay[Math.min(lvl, 2)];
-
-  localStorage.setItem("memoryData", JSON.stringify(memoryData));
-}
-
-// =====================
-// 判斷
-// =====================
-function checkAnswer(ans, correct) {
-  let isCorrect = ans === correct;
-
-  if (isCorrect) score++;
-
-  updateMemory(correct, isCorrect);
-
-  currentIndex++;
-  nextQuiz();
-}
-
-// =====================
-// 🎉 結束
-// =====================
-function endQuiz() {
-  document.getElementById("result").innerText =
-    `🎉 分數：${score}/10`;
-
-  unlockMap();
-}
-
-// =====================
-// 🔓 闖關開鎖
-// =====================
-function unlockMap() {
-  let map = document.getElementById("map").children;
-
-  for (let i = 0; i < score; i++) {
-    map[i].innerText = "⭐";
+// ==========================
+// ▶️ 播放下一個音節
+// ==========================
+function playNext() {
+  if (index >= phonicsArray.length) {
+    setTimeout(() => {
+      document.getElementById("phonics").innerText = currentWord.word;
+      speak(currentWord.word);
+    }, 500);
+    return;
   }
+
+  let sound = phonicsArray[index];
+
+  document.getElementById("phonics").innerText += sound + " ";
+  speak(sound);
+
+  index++;
+  setTimeout(playNext, 800);
 }
 
-// =====================
-function shuffle(arr) {
-  return arr.sort(() => Math.random() - 0.5);
+
+// ==========================
+// 🎯 測驗模式
+// ==========================
+function startQuiz() {
+  document.querySelector(".quiz").classList.remove("hidden");
+
+  let choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  let correct = currentWord;
+  let options = [correct];
+
+  // 🎲 產生4個選項
+  while (options.length < 4) {
+    let rand = words[Math.floor(Math.random() * words.length)];
+    if (!options.includes(rand)) options.push(rand);
+  }
+
+  // 🔀 洗牌
+  options.sort(() => Math.random() - 0.5);
+
+  // 🖼️ 顯示圖片選項
+  options.forEach(option => {
+    let img = document.createElement("img");
+    img.src = option.image || "https://via.placeholder.com/100";
+
+    img.onclick = () => checkAnswer(option.word);
+
+    choicesDiv.appendChild(img);
+  });
+}
+
+
+// ==========================
+// ✅ 檢查答案
+// ==========================
+function checkAnswer(ans) {
+  if (ans === currentWord.word) {
+    document.getElementById("result").innerText = "✅ 答對了！";
+  } else {
+    document.getElementById("result").innerText = "❌ 再試一次";
+  }
 }

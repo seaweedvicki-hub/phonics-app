@@ -2,11 +2,18 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AI Phonics Game</title>
+<title>AI Phonics App</title>
+
+<!-- ⭐ 手機APP關鍵 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+
+<!-- iPhone支援 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
-body { font-family: Arial; text-align: center; background:#f0f3fa; }
+body { font-family: Arial; text-align:center; background:#f0f3fa; }
 .card { background:white; margin:10px; padding:15px; border-radius:15px; }
 button { padding:10px; margin:5px; border-radius:10px; border:none; background:#4CAF50; color:white; }
 img { width:120px; height:120px; }
@@ -50,5 +57,13 @@ img { width:120px; height:120px; }
 </div>
 
 <script src="app.js"></script>
+
+<!-- ⭐ 註冊 Service Worker -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
 </body>
 </html>

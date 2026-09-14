@@ -1,174 +1,91 @@
-/* =======================
-🌈 全域設定
-======================= */
 body {
-  font-family: "Arial", sans-serif;
-  background: linear-gradient(135deg, #fceabb, #f8b500);
   margin: 0;
-  padding: 0;
+  font-family: sans-serif;
+  background: linear-gradient(#74c0fc, #d0ebff);
   text-align: center;
 }
 
-/* =======================
-👤 登入畫面
-======================= */
+/* 登入 */
 .login {
   margin-top: 100px;
 }
 
-.login input {
+/* 玩家列 */
+.player-bar {
+  background: white;
   padding: 10px;
-  font-size: 16px;
+  border-radius: 15px;
+  margin: 10px;
+}
+
+/* XP條 */
+.xp-bar {
+  width: 80%;
+  height: 10px;
+  background: #ddd;
+  margin: 5px auto;
   border-radius: 10px;
-  border: 1px solid #ccc;
 }
 
-.login button {
-  padding: 10px 20px;
-  margin-left: 10px;
-  border: none;
+#xpFill {
+  height: 100%;
+  width: 0%;
+  background: #51cf66;
   border-radius: 10px;
-  background: #4dabf7;
-  color: white;
-  font-size: 16px;
 }
 
-/* =======================
-📱 主畫面
-======================= */
-.app {
-  padding: 20px;
+/* 地圖 */
+.map {
+  margin: 20px;
 }
 
-.hidden {
-  display: none;
+.map span {
+  font-size: 30px;
+  margin: 8px;
+  transition: 0.3s;
 }
 
-/* =======================
-🎮 闖關地圖
-======================= */
-#map {
-  margin-bottom: 20px;
-}
-
-#map span {
-  font-size: 28px;
-  margin: 5px;
-}
-
-/* =======================
-📦 卡片
-======================= */
+/* 卡片 */
 .card {
   background: white;
-  border-radius: 20px;
-  padding: 20px;
   margin: 20px auto;
+  padding: 20px;
+  border-radius: 20px;
   width: 90%;
   max-width: 350px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
-/* =======================
-🖼 圖片
-======================= */
 #image {
-  width: 150px;
-  height: 150px;
-  object-fit: cover;
-  border-radius: 15px;
-  margin-bottom: 10px;
-}
-
-/* =======================
-🔤 單字
-======================= */
-#word {
-  font-size: 32px;
-  margin: 10px 0;
-}
-
-/* =======================
-🧩 音節積木
-======================= */
-#phonics {
-  margin: 10px 0;
-}
-
-#phonics span {
-  display: inline-block;
-  background: #d0ebff;
-  color: #1c7ed6;
-  padding: 8px 12px;
-  margin: 5px;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-#phonics span:hover {
-  background: #74c0fc;
-  color: white;
-}
-
-/* =======================
-📖 中文
-======================= */
-#meaning {
-  font-size: 18px;
-  color: #555;
-}
-
-/* =======================
-🔘 按鈕
-======================= */
-button {
-  padding: 10px 15px;
-  margin: 5px;
-  border: none;
+  width: 120px;
   border-radius: 10px;
-  background: #51cf66;
-  color: white;
-  font-size: 14px;
+}
+
+/* 音節 */
+#phonics span {
+  background: #ffd43b;
+  padding: 8px;
+  margin: 5px;
+  border-radius: 10px;
+  display: inline-block;
   cursor: pointer;
-  transition: 0.2s;
 }
 
-button:hover {
-  background: #37b24d;
+/* 按鈕 */
+button {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 10px;
+  border: none;
+  background: #ff6b6b;
+  color: white;
 }
 
-/* =======================
-🎯 測驗區
-======================= */
+/* 測驗 */
 .quiz {
   margin-top: 20px;
 }
 
-#choices button {
-  display: block;
-  width: 80%;
-  margin: 10px auto;
-  background: #ff922b;
-}
-
-#choices button:hover {
-  background: #f76707;
-}
-
-/* =======================
-📊 結果
-======================= */
-#result {
-  font-size: 20px;
-  margin-top: 10px;
-  font-weight: bold;
-}
-
-/* =======================
-✨ 小動畫
-======================= */
-button:active {
-  transform: scale(0.95);
+.hidden {
+  display: none;
 }

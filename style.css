@@ -36,6 +36,14 @@ button {
   min-height:50px;
   padding:15px;
   margin:10px 0;
+  background:#ffffff33;
+  border-radius:10px;
+}
+
+canvas {
+  background:#ffffff33;
+  border-radius:10px;
+  margin-top:10px;
 }
 
 .hidden {

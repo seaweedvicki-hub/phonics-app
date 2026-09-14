@@ -28,7 +28,7 @@
   <button onclick="startQuiz()">🎯 拼音測驗</button>
   <button onclick="startSpeaking()">🎤 口說</button>
   <button onclick="startWeakPractice()">🔥 錯字練習</button>
-  <button onclick="showReport()">📊 報告</button>
+  <button onclick="showReport()">📊 家長報告</button>
 </div>
 
 <!-- 學習 -->
@@ -60,7 +60,10 @@
 <!-- 報告 -->
 <div id="report" class="hidden">
   <h2>📊 學習報告</h2>
-  <div id="reportData"></div>
+
+  <p id="summary"></p>
+  <canvas id="chart" height="200"></canvas>
+  <div id="weakWords"></div>
 </div>
 
 </div>

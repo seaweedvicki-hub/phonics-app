@@ -2,53 +2,66 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Phonics Game</title>
+<title>AI Phonics App</title>
+
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+
 </head>
 <body>
 
-<!-- 👤 登入 -->
-<div class="login">
-  <input id="name" placeholder="輸入名字">
-  <button onclick="login()">開始冒險</button>
+<div class="app">
+
+  <!-- 👤 登入 -->
+  <div id="login">
+    <h2>🤖 AI英文老師</h2>
+    <input id="name" placeholder="學生名字">
+    <button onclick="login()">開始學習</button>
+  </div>
+
+  <!-- 🗺️ 主畫面 -->
+  <div id="home" class="hidden">
+    <h2 id="username"></h2>
+
+    <button onclick="startLearn()">📚 開始學習</button>
+    <button onclick="startQuiz()">🎯 測驗</button>
+    <button onclick="startAI()">🤖 AI老師</button>
+    <button onclick="showReport()">📊 家長報告</button>
+  </div>
+
+  <!-- 📚 學習 -->
+  <div id="learn" class="hidden">
+    <h1 id="word"></h1>
+    <p id="phonics"></p>
+    <p id="meaning"></p>
+    <button onclick="playPhonics()">🔊</button>
+    <button onclick="startSpeech()">🎤</button>
+    <button onclick="nextLearn()">下一個</button>
+  </div>
+
+  <!-- 🤖 AI -->
+  <div id="ai" class="hidden">
+    <h2>AI老師</h2>
+    <div id="chat"></div>
+    <input id="aiInput">
+    <button onclick="askAI()">送出</button>
+  </div>
+
+  <!-- 📊 報告 -->
+  <div id="report" class="hidden">
+    <h2>學習報告</h2>
+    <div id="reportData"></div>
+    <button onclick="backHome()">返回</button>
+  </div>
+
 </div>
 
-<!-- 🗺️ 遊戲地圖 -->
-<div id="map" class="hidden">
-  <h2>🌍 闖關地圖</h2>
-  <div id="levels"></div>
-</div>
-
-<!-- 📚 學習 -->
-<div class="card hidden" id="learnBox">
-  <h2 id="progress"></h2>
-
-  <img id="image" class="word-img">
-
-  <h1 id="word"></h1>
-  <p id="phonics"></p>
-  <p id="meaning"></p>
-
-  <button onclick="playPhonics()">🔊 發音</button>
-  <button onclick="nextLearn()">下一個</button>
-</div>
-
-<!-- 🎯 測驗 -->
-<div class="quiz hidden" id="quizBox">
-  <h2 id="quizWord"></h2>
-  <div id="choices"></div>
-  <p id="result"></p>
-</div>
-
-<!-- 📊 成績 -->
-<div class="result hidden" id="resultBox">
-  <h2 id="score"></h2>
-  <button onclick="backToMap()">回地圖</button>
-</div>
-
-<!-- 📊 家長報告 -->
-<div id="report"></div>
-
+<script src="firebase.js"></script>
+<script src="ai.js"></script>
 <script src="app.js"></script>
 
 </body>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>家長報告</title>
+</head>
+<body>
+
+<h1>📊 學習報告</h1>
+
+<div id="report"></div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("memoryData") || "{}");
+
+let html = "<h3>單字狀態：</h3>";
+
+for (let w in data) {
+  html += `<p>${w} → 等級 ${data[w].level}</p>`;
+}
+
+document.getElementById("report").innerHTML = html;
+</script>
+
+</body>
+</html>

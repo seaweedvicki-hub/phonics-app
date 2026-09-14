@@ -2,11 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Phonics AI App</title>
+<title>AI Phonics Game</title>
 <link rel="stylesheet" href="style.css">
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+<link rel="manifest" href="manifest.json">
 </head>
 
 <body>
@@ -15,38 +14,24 @@
 
 <!-- 👤 登入 -->
 <div id="login">
-  <h2>🎓 AI英文老師</h2>
-  <input id="name" placeholder="輸入學生名字">
-  <button onclick="login()">開始</button>
+  <h2>🎮 AI英文遊戲</h2>
+  <input id="name" placeholder="輸入名字">
+  <button onclick="login()">開始冒險</button>
 </div>
 
 <!-- 🏠 主頁 -->
-<div id="learn" class="hidden">
-  ...
-</div>
-
-<!-- 🟩 新增：闖關地圖 -->
-<div id="map" class="hidden">
-  <h2>🗺️ 闖關地圖</h2>
-  <div id="mapArea"></div>
-</div>
-
-<!-- 🟩 新增：拼音積木測驗 -->
-<div id="quiz" class="hidden">
-  <h2 id="target"></h2>
-  <p id="answer"></p>
-  <div id="choices"></div>
-</div>
+<div id="home" class="hidden">
   <h2 id="username"></h2>
 
-  <button onclick="startLearn()">📚 開始學習</button>
-  <button onclick="generateAIWords()">🤖 AI出10字</button>
-  <button onclick="startQuiz()">🎯 測驗</button>
+  <button onclick="startLearn()">📚 學習</button>
+  <button onclick="startMap()">🗺️ 闖關</button>
+  <button onclick="startSpeaking()">🎤 口說</button>
+  <button onclick="startWeakPractice()">🔥 加強錯字</button>
   <button onclick="showReport()">📊 家長報告</button>
 </div>
 
-<!-- 📚 學習 -->
-<div id="learn" class="hidden">
+<!-- 📚 學習卡片 -->
+<div id="learn" class="hidden card">
   <h1 id="word"></h1>
   <p id="phonics"></p>
   <p id="meaning"></p>
@@ -55,17 +40,35 @@
   <button onclick="nextLearn()">下一個</button>
 </div>
 
+<!-- 🗺️ 地圖 -->
+<div id="map" class="hidden">
+  <h2>🗺️ 闖關地圖</h2>
+  <div id="mapArea"></div>
+</div>
+
+<!-- 🎯 拼圖測驗 -->
+<div id="quiz" class="hidden">
+  <h2 id="target"></h2>
+  <div id="dropZone">拖曳到這裡</div>
+  <div id="choices"></div>
+</div>
+
+<!-- 🎤 口說 -->
+<div id="speaking" class="hidden">
+  <h2>🎤 說出單字</h2>
+  <h1 id="speakWord"></h1>
+  <button onclick="startRecording()">開始說</button>
+  <p id="speakResult"></p>
+</div>
+
 <!-- 📊 家長 -->
 <div id="report" class="hidden">
   <h2>📊 學習報告</h2>
   <div id="reportData"></div>
-  <button onclick="backHome()">返回</button>
 </div>
 
 </div>
 
-<script src="firebase.js"></script>
-<script src="ai.js"></script>
 <script src="app.js"></script>
 
 </body>

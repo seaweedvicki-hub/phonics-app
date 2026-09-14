@@ -6,7 +6,10 @@ let wrongWords={};
 let index=0;
 let currentWord=null;
 
-// 📚 Google Sheet
+let totalQuestions=0;
+let correctCount=0;
+
+// 📚 讀 Google Sheet
 const API_URL ="https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
 fetch(API_URL)
@@ -51,7 +54,6 @@ function showWord(){
   document.getElementById("meaning").innerText=currentWord.meaning;
 }
 
-// AI解釋
 async function aiExplain(){
   let text=await explainWord(currentWord.word);
   alert(text);
@@ -60,8 +62,8 @@ async function aiExplain(){
 function nextLearn(){
   index++;
   if(index>=currentSet.length){
-    alert("完成！");
-    show("home");
+    alert("進入測驗！");
+    startQuiz();
     return;
   }
   showWord();
@@ -69,6 +71,8 @@ function nextLearn(){
 
 // 🎯 測驗
 function startQuiz(){
+  totalQuestions=0;
+  correctCount=0;
   show("quiz");
   nextQuiz();
 }
@@ -106,7 +110,10 @@ document.addEventListener("drop", e=>{
 // 判斷
 function checkAnswer(ans){
 
+  totalQuestions++;
+
   if(ans===currentWord.word){
+    correctCount++;
     alert("✅");
   }else{
     alert("❌");
@@ -114,7 +121,23 @@ function checkAnswer(ans){
     memoryPool.push(currentWord);
   }
 
-  nextQuiz();
+  if(totalQuestions>=10){
+    finishQuiz();
+  }else{
+    nextQuiz();
+  }
+}
+
+// 📊 結束測驗
+function finishQuiz(){
+
+  let score=Math.round((correctCount/totalQuestions)*100);
+
+  saveHistory(score);
+
+  alert("完成！分數："+score);
+
+  show("home");
 }
 
 // 🧠 記憶曲線
@@ -125,42 +148,85 @@ function pickWord(){
   return currentSet[Math.floor(Math.random()*currentSet.length)];
 }
 
-// 🔥 錯字練習
-function startWeakPractice(){
-  currentSet=Object.keys(wrongWords).map(w=>words.find(x=>x.word===w));
-  startQuiz();
+// 📊 儲存紀錄
+function saveHistory(score){
+
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+
+  history.push({
+    date:new Date().toLocaleDateString(),
+    score:score,
+    wrongWords:{...wrongWords}
+  });
+
+  localStorage.setItem("history", JSON.stringify(history));
 }
 
-// 🎤 口說
-let recognition;
-
-function startSpeaking(){
-  recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang="en-US";
-
-  show("speaking");
-
-  currentWord=currentSet[Math.floor(Math.random()*currentSet.length)];
-  document.getElementById("speakWord").innerText=currentWord.word;
-}
-
-function startRecording(){
-  recognition.start();
-
-  recognition.onresult=function(e){
-    let said=e.results[0][0].transcript.toLowerCase();
-    let score=(said===currentWord.word)?100:60;
-
-    document.getElementById("speakResult").innerText=
-      `你說:${said} 分數:${score}`;
-  };
-}
-
-// 📊 報告
+// 📊 顯示報告
 function showReport(){
+
   show("report");
-  document.getElementById("reportData").innerText=
-    "錯字："+Object.keys(wrongWords).join(",");
+
+  let history = JSON.parse(localStorage.getItem("history") || "[]");
+
+  if(!history.length){
+    document.getElementById("summary").innerText="尚無資料";
+    return;
+  }
+
+  let avg=Math.round(history.reduce((s,h)=>s+h.score,0)/history.length);
+
+  document.getElementById("summary").innerText=
+    `總次數:${history.length}｜平均:${avg}%`;
+
+  let labels=history.map(h=>h.date);
+  let scores=history.map(h=>h.score);
+
+  drawChart(labels,scores);
+
+  let weak={};
+
+  history.forEach(h=>{
+    Object.keys(h.wrongWords||{}).forEach(w=>{
+      weak[w]=(weak[w]||0)+h.wrongWords[w];
+    });
+  });
+
+  let html="<h3>🔥 常錯單字</h3>";
+
+  Object.entries(weak)
+  .sort((a,b)=>b[1]-a[1])
+  .slice(0,5)
+  .forEach(([w,c])=>{
+    html+=`<p>${w} (${c})</p>`;
+  });
+
+  document.getElementById("weakWords").innerHTML=html;
+}
+
+// 📈 畫圖
+function drawChart(labels,data){
+
+  const canvas=document.getElementById("chart");
+  const ctx=canvas.getContext("2d");
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  let step=canvas.width/(data.length-1||1);
+
+  ctx.beginPath();
+
+  data.forEach((v,i)=>{
+    let x=i*step;
+    let y=canvas.height-(v/100*canvas.height);
+
+    if(i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  });
+
+  ctx.strokeStyle="#fff";
+  ctx.lineWidth=3;
+  ctx.stroke();
 }
 
 // 🔊 發音

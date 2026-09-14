@@ -1,15 +1,13 @@
 let user="";
 let words=[];
 let currentSet=[];
-let memoryPool=[];
-let wrongWords={};
 let index=0;
 let currentWord=null;
 
-let totalQuestions=0;
-let correctCount=0;
+let level=1;
+let stars=Number(localStorage.getItem("stars")||0);
 
-// 📚 讀 Google Sheet
+// 📚 載入單字
 const API_URL ="https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
 fetch(API_URL)
@@ -29,24 +27,46 @@ fetch(API_URL)
 function login(){
   user=document.getElementById("name").value;
   if(!user) return alert("請輸入名字");
-  show("home");
-  document.getElementById("username").innerText="👋 "+user;
+  show("map");
+  updateStars();
+  renderMap();
 }
 
-// UI切換
+// UI
 function show(id){
   document.querySelectorAll(".app > div").forEach(d=>d.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
 }
 
-// 📚 學習
-function startLearn(){
+// =======================
+// 🗺️ 地圖
+// =======================
+function renderMap(){
+
+  let html="";
+
+  for(let i=1;i<=10;i++){
+    html += `
+      <button onclick="startLevel(${i})"
+        ${i>level?"disabled":""}>
+        關卡 ${i}
+      </button>
+    `;
+  }
+
+  document.getElementById("mapArea").innerHTML=html;
+}
+
+function startLevel(lv){
   currentSet=shuffle(words).slice(0,10);
   index=0;
   show("learn");
   showWord();
 }
 
+// =======================
+// 📚 學習
+// =======================
 function showWord(){
   currentWord=currentSet[index];
   document.getElementById("word").innerText=currentWord.word;
@@ -54,32 +74,31 @@ function showWord(){
   document.getElementById("meaning").innerText=currentWord.meaning;
 }
 
-async function aiExplain(){
-  let text=await explainWord(currentWord.word);
-  alert(text);
-}
-
 function nextLearn(){
   index++;
   if(index>=currentSet.length){
-    alert("進入測驗！");
     startQuiz();
     return;
   }
   showWord();
 }
 
+// =======================
 // 🎯 測驗
+// =======================
+let correct=0;
+let total=0;
+
 function startQuiz(){
-  totalQuestions=0;
-  correctCount=0;
+  correct=0;
+  total=0;
   show("quiz");
   nextQuiz();
 }
 
 function nextQuiz(){
 
-  currentWord=pickWord();
+  currentWord=currentSet[Math.floor(Math.random()*currentSet.length)];
 
   document.getElementById("target").innerText=currentWord.phonics;
   document.getElementById("dropZone").innerText="";
@@ -110,126 +129,82 @@ document.addEventListener("drop", e=>{
 // 判斷
 function checkAnswer(ans){
 
-  totalQuestions++;
+  total++;
 
   if(ans===currentWord.word){
-    correctCount++;
-    alert("✅");
-  }else{
-    alert("❌");
-    wrongWords[currentWord.word]=(wrongWords[currentWord.word]||0)+1;
-    memoryPool.push(currentWord);
+    correct++;
   }
 
-  if(totalQuestions>=10){
-    finishQuiz();
+  if(total>=10){
+    finishLevel();
   }else{
     nextQuiz();
   }
 }
 
-// 📊 結束測驗
-function finishQuiz(){
+// =======================
+// ⭐ 星星系統
+// =======================
+function finishLevel(){
 
-  let score=Math.round((correctCount/totalQuestions)*100);
+  let score=Math.round((correct/total)*100);
 
-  saveHistory(score);
+  let earn=1;
 
-  alert("完成！分數："+score);
+  if(score>=80) earn=2;
+  if(score===100) earn=3;
 
-  show("home");
+  stars+=earn;
+  localStorage.setItem("stars",stars);
+
+  alert(`⭐ 獲得 ${earn} 星！`);
+
+  if(level<10) level++;
+
+  updateStars();
+  checkUnlock();
+
+  show("map");
+  renderMap();
 }
 
-// 🧠 記憶曲線
-function pickWord(){
-  if(memoryPool.length && Math.random()<0.6){
-    return memoryPool[Math.floor(Math.random()*memoryPool.length)];
-  }
-  return currentSet[Math.floor(Math.random()*currentSet.length)];
+function updateStars(){
+  document.getElementById("stars").innerText=stars;
 }
 
-// 📊 儲存紀錄
-function saveHistory(score){
+// =======================
+// 🎁 解鎖角色
+// =======================
+function checkUnlock(){
 
-  let history = JSON.parse(localStorage.getItem("history") || "[]");
+  let unlocked = JSON.parse(localStorage.getItem("chars")||"[]");
 
-  history.push({
-    date:new Date().toLocaleDateString(),
-    score:score,
-    wrongWords:{...wrongWords}
-  });
-
-  localStorage.setItem("history", JSON.stringify(history));
-}
-
-// 📊 顯示報告
-function showReport(){
-
-  show("report");
-
-  let history = JSON.parse(localStorage.getItem("history") || "[]");
-
-  if(!history.length){
-    document.getElementById("summary").innerText="尚無資料";
-    return;
+  if(stars>=5 && !unlocked.includes("🐱")){
+    unlocked.push("🐱");
+    alert("🎉 解鎖角色：小貓！");
   }
 
-  let avg=Math.round(history.reduce((s,h)=>s+h.score,0)/history.length);
+  if(stars>=10 && !unlocked.includes("🐶")){
+    unlocked.push("🐶");
+    alert("🎉 解鎖角色：小狗！");
+  }
 
-  document.getElementById("summary").innerText=
-    `總次數:${history.length}｜平均:${avg}%`;
-
-  let labels=history.map(h=>h.date);
-  let scores=history.map(h=>h.score);
-
-  drawChart(labels,scores);
-
-  let weak={};
-
-  history.forEach(h=>{
-    Object.keys(h.wrongWords||{}).forEach(w=>{
-      weak[w]=(weak[w]||0)+h.wrongWords[w];
-    });
-  });
-
-  let html="<h3>🔥 常錯單字</h3>";
-
-  Object.entries(weak)
-  .sort((a,b)=>b[1]-a[1])
-  .slice(0,5)
-  .forEach(([w,c])=>{
-    html+=`<p>${w} (${c})</p>`;
-  });
-
-  document.getElementById("weakWords").innerHTML=html;
+  localStorage.setItem("chars",JSON.stringify(unlocked));
 }
 
-// 📈 畫圖
-function drawChart(labels,data){
+function showCharacters(){
 
-  const canvas=document.getElementById("chart");
-  const ctx=canvas.getContext("2d");
+  show("characters");
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  let unlocked = JSON.parse(localStorage.getItem("chars")||"[]");
 
-  let step=canvas.width/(data.length-1||1);
-
-  ctx.beginPath();
-
-  data.forEach((v,i)=>{
-    let x=i*step;
-    let y=canvas.height-(v/100*canvas.height);
-
-    if(i===0) ctx.moveTo(x,y);
-    else ctx.lineTo(x,y);
-  });
-
-  ctx.strokeStyle="#fff";
-  ctx.lineWidth=3;
-  ctx.stroke();
+  document.getElementById("charList").innerHTML =
+    unlocked.map(c=>`<span style="font-size:40px">${c}</span>`).join("");
 }
 
+// =======================
 // 🔊 發音
+// =======================
 function speak(text){
   speechSynthesis.cancel();
   let msg=new SpeechSynthesisUtterance(text);

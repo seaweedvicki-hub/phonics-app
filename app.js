@@ -2,34 +2,33 @@
 // 📦 全域
 // ==========================
 let words = [];
-let currentWord;
-let phonicsArray = [];
-
 let student = "";
+let level = 1;
+
 let learnList = [];
-let reviewQueue = []; // ⭐ 記憶曲線核心
-let currentIndex = 0;
+let reviewQueue = [];
+let currentWord;
 let score = 0;
 
 // ==========================
-// 📥 載入資料
+// 📥 載入單字
 // ==========================
 const API_URL = "https://docs.google.com/spreadsheets/d/1SlXohdxvTSsmPdyjW2X1bZoepDVXG1FWppXGCn4NDzI/gviz/tq?tqx=out:json";
 
 fetch(API_URL)
-  .then(res => res.text())
-  .then(text => {
-    const json = JSON.parse(
-      text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
-    );
+.then(res => res.text())
+.then(text => {
+  const json = JSON.parse(
+    text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1)
+  );
 
-    words = json.table.rows.map(row => ({
-      word: row.c[0]?.v || "",
-      phonics: row.c[1]?.v || "",
-      meaning: row.c[2]?.v || "",
-      image: row.c[3]?.v || ""
-    })).filter(w => w.word);
-  });
+  words = json.table.rows.map(row => ({
+    word: row.c[0]?.v || "",
+    phonics: row.c[1]?.v || "",
+    meaning: row.c[2]?.v || "",
+    image: row.c[3]?.v || ""
+  })).filter(w => w.word);
+});
 
 
 // ==========================
@@ -40,77 +39,92 @@ function login() {
   if (!student) return alert("請輸入名字");
 
   document.querySelector(".login").classList.add("hidden");
-  document.getElementById("learnBox").classList.remove("hidden");
+  document.getElementById("map").classList.remove("hidden");
 
-  startLearning();
+  loadMap();
+  loadReport();
 }
 
 
 // ==========================
-// 📚 開始學習（10字）
+// 🗺️ 地圖
 // ==========================
-function startLearning() {
-  learnList = shuffle([...words]).slice(0, 10);
+function loadMap() {
+  let box = document.getElementById("levels");
+  box.innerHTML = "";
 
-  // ⭐ 初始化記憶曲線
-  reviewQueue = [...learnList];
+  for (let i = 1; i <= 5; i++) {
+    let btn = document.createElement("button");
+    btn.innerText = "關卡 " + i;
 
-  currentIndex = 0;
-  score = 0;
+    if (i <= level) {
+      btn.onclick = () => startLevel(i);
+    } else {
+      btn.disabled = true;
+    }
 
-  showLearn();
-}
-
-
-// ==========================
-// 📖 學習畫面
-// ==========================
-function showLearn() {
-  currentWord = learnList[currentIndex];
-
-  document.getElementById("progress").innerText =
-    `📚 學習 ${currentIndex + 1} / 10`;
-
-  document.getElementById("word").innerText = currentWord.word;
-  document.getElementById("meaning").innerText = "👉 " + currentWord.meaning;
-  document.getElementById("phonics").innerText = currentWord.phonics;
-
-  let img = document.getElementById("image");
-  img.src = currentWord.image || "https://via.placeholder.com/150";
-
-  phonicsArray = currentWord.phonics?.split("-") || [];
-}
-
-
-// 下一個學習
-function nextLearn() {
-  currentIndex++;
-  if (currentIndex >= 10) {
-    startQuizMode();
-  } else {
-    showLearn();
+    box.appendChild(btn);
   }
 }
 
 
 // ==========================
-// 🎯 測驗開始
+// 🎮 開始關卡
 // ==========================
-function startQuizMode() {
-  currentIndex = 0;
+function startLevel(lv) {
+  level = lv;
 
-  document.getElementById("learnBox").classList.add("hidden");
-  document.getElementById("quizBox").classList.remove("hidden");
+  learnList = shuffle([...words]).slice(0, 10);
+  reviewQueue = [...learnList];
+  score = 0;
 
-  showQuiz();
+  document.getElementById("map").classList.add("hidden");
+  document.getElementById("learnBox").classList.remove("hidden");
+
+  showLearn(0);
 }
 
 
 // ==========================
-// ❓ 顯示題目（記憶曲線）
+// 📚 學習
 // ==========================
+function showLearn(i) {
+  currentWord = learnList[i];
+
+  document.getElementById("progress").innerText =
+    `關卡 ${level} - ${i+1}/10`;
+
+  document.getElementById("word").innerText = currentWord.word;
+  document.getElementById("meaning").innerText = currentWord.meaning;
+  document.getElementById("phonics").innerText = currentWord.phonics;
+
+  document.getElementById("image").src =
+    currentWord.image || "https://via.placeholder.com/150";
+
+  window.learnIndex = i;
+}
+
+function nextLearn() {
+  let i = window.learnIndex + 1;
+
+  if (i >= 10) {
+    startQuiz();
+  } else {
+    showLearn(i);
+  }
+}
+
+
+// ==========================
+// 🎯 測驗（記憶曲線）
+// ==========================
+function startQuiz() {
+  document.getElementById("learnBox").classList.add("hidden");
+  document.getElementById("quizBox").classList.remove("hidden");
+  showQuiz();
+}
+
 function showQuiz() {
-  // ⭐ 從記憶隊列取題
   currentWord = reviewQueue[0];
 
   document.getElementById("quizWord").innerText = currentWord.phonics;
@@ -132,55 +146,82 @@ function showQuiz() {
 
 
 // ==========================
-// ✅ 檢查答案（核心🔥）
+// ✅ 檢查答案（記憶曲線）
 // ==========================
 function checkAnswer(ans) {
-  let correct = currentWord.word;
-
-  if (ans === correct) {
+  if (ans === currentWord.word) {
     score++;
-    document.getElementById("result").innerText = "✅ 正確";
-
-    // ⭐ 答對 → 移除
     reviewQueue.shift();
-
   } else {
-    document.getElementById("result").innerText = "❌ 錯誤";
-
-    // ⭐ 答錯 → 丟到後面（稍後再考）
     reviewQueue.push(reviewQueue.shift());
   }
 
-  setTimeout(() => {
-    if (reviewQueue.length === 0) {
-      showResult();
-    } else {
-      showQuiz();
-    }
-  }, 800);
+  if (reviewQueue.length === 0) {
+    finishLevel();
+  } else {
+    showQuiz();
+  }
 }
 
 
 // ==========================
-// 📊 成績
+// 🏁 結束關卡
 // ==========================
-function showResult() {
+function finishLevel() {
   document.getElementById("quizBox").classList.add("hidden");
   document.getElementById("resultBox").classList.remove("hidden");
 
   document.getElementById("score").innerText =
-    `${student} 完成！得分：${score}`;
+    `${student} 關卡 ${level}：${score} 分`;
+
+  saveReport();
+
+  level++;
 }
 
 
 // ==========================
-// 🔁 下一組
+// 📊 家長報告（LocalStorage）
 // ==========================
-function nextGroup() {
-  document.getElementById("resultBox").classList.add("hidden");
-  document.getElementById("learnBox").classList.remove("hidden");
+function saveReport() {
+  let data = JSON.parse(localStorage.getItem("report") || "{}");
 
-  startLearning();
+  if (!data[student]) data[student] = [];
+
+  data[student].push({
+    level: level,
+    score: score,
+    time: new Date().toLocaleString()
+  });
+
+  localStorage.setItem("report", JSON.stringify(data));
+}
+
+function loadReport() {
+  let data = JSON.parse(localStorage.getItem("report") || "{}");
+  let box = document.getElementById("report");
+
+  if (!data[student]) return;
+
+  box.innerHTML = "<h3>📊 學習紀錄</h3>";
+
+  data[student].forEach(r => {
+    let p = document.createElement("p");
+    p.innerText = `關卡${r.level}：${r.score}分 (${r.time})`;
+    box.appendChild(p);
+  });
+}
+
+
+// ==========================
+// 🔙 回地圖
+// ==========================
+function backToMap() {
+  document.getElementById("resultBox").classList.add("hidden");
+  document.getElementById("map").classList.remove("hidden");
+
+  loadMap();
+  loadReport();
 }
 
 
@@ -188,16 +229,13 @@ function nextGroup() {
 // 🔊 發音
 // ==========================
 function playPhonics() {
-  phonicsArray.forEach((p, i) => {
+  let arr = currentWord.phonics.split("-");
+  arr.forEach((p, i) => {
     setTimeout(() => speak(p), i * 600);
   });
 }
 
 function speak(text) {
-  if (!text) return;
-
-  speechSynthesis.cancel();
-
   let msg = new SpeechSynthesisUtterance(text);
   msg.lang = "en-US";
   speechSynthesis.speak(msg);

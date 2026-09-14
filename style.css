@@ -1,91 +1,44 @@
 body {
-  margin: 0;
+  margin:0;
   font-family: sans-serif;
-  background: linear-gradient(#74c0fc, #d0ebff);
-  text-align: center;
+  background: linear-gradient(#4facfe,#00f2fe);
 }
 
-/* 登入 */
-.login {
-  margin-top: 100px;
+.app {
+  max-width: 420px;
+  margin:auto;
+  padding:20px;
 }
 
-/* 玩家列 */
-.player-bar {
-  background: white;
-  padding: 10px;
-  border-radius: 15px;
-  margin: 10px;
-}
-
-/* XP條 */
-.xp-bar {
-  width: 80%;
-  height: 10px;
-  background: #ddd;
-  margin: 5px auto;
-  border-radius: 10px;
-}
-
-#xpFill {
-  height: 100%;
-  width: 0%;
-  background: #51cf66;
-  border-radius: 10px;
-}
-
-/* 地圖 */
-.map {
-  margin: 20px;
-}
-
-.map span {
-  font-size: 30px;
-  margin: 8px;
-  transition: 0.3s;
-}
-
-/* 卡片 */
-.card {
-  background: white;
-  margin: 20px auto;
-  padding: 20px;
-  border-radius: 20px;
-  width: 90%;
-  max-width: 350px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-}
-
-#image {
-  width: 120px;
-  border-radius: 10px;
-}
-
-/* 音節 */
-#phonics span {
-  background: #ffd43b;
-  padding: 8px;
-  margin: 5px;
-  border-radius: 10px;
-  display: inline-block;
-  cursor: pointer;
-}
-
-/* 按鈕 */
 button {
-  padding: 10px;
-  margin: 5px;
-  border-radius: 10px;
-  border: none;
-  background: #ff6b6b;
-  color: white;
+  width:100%;
+  padding:15px;
+  margin:10px 0;
+  border:none;
+  border-radius:15px;
+  font-size:18px;
+  background:#fff;
 }
 
-/* 測驗 */
-.quiz {
-  margin-top: 20px;
+.card {
+  background:#fff;
+  padding:20px;
+  border-radius:20px;
+  text-align:center;
 }
 
-.hidden {
-  display: none;
+#choices button {
+  width:auto;
+  margin:5px;
+  padding:10px;
 }
+
+#dropZone {
+  border:2px dashed #fff;
+  padding:20px;
+  margin:10px 0;
+  min-height:50px;
+  text-align:center;
+}
+
+.hidden { display:none; }

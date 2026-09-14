@@ -2,37 +2,46 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Phonics App</title>
+<title>Phonics Game</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- 👤 登入 -->
 <div class="login">
+  <h2>🎮 Phonics Game</h2>
   <input id="name" placeholder="輸入名字">
-  <button onclick="login()">開始學習</button>
+  <button onclick="login()">開始冒險</button>
 </div>
 
-<!-- 🎮 主APP -->
+<!-- 🎮 遊戲主畫面 -->
 <div class="app hidden">
 
-  <h2 id="player"></h2>
+  <!-- 👶 玩家資訊 -->
+  <div class="player-bar">
+    <span id="playerName"></span>
+    <span id="level"></span>
+    <div class="xp-bar">
+      <div id="xpFill"></div>
+    </div>
+  </div>
 
   <!-- 🗺 闖關地圖 -->
-  <div id="map"></div>
+  <div id="map" class="map"></div>
 
+  <!-- 📦 單字卡 -->
   <div class="card">
-    <img id="image" width="150">
-
+    <img id="image">
     <h1 id="word"></h1>
     <div id="phonics"></div>
     <p id="meaning"></p>
 
     <button onclick="playPhonics()">🔊 發音</button>
-    <button onclick="nextLearn()">下一個</button>
-    <button onclick="startQuizMode()">🎯 測驗</button>
+    <button onclick="nextLearn()">➡️ 下一個</button>
+    <button onclick="startQuizMode()">🎯 挑戰關卡</button>
   </div>
 
+  <!-- 🎯 測驗 -->
   <div class="quiz hidden">
     <h3>選出正確答案</h3>
     <div id="choices"></div>
